@@ -29,7 +29,7 @@ import cartopy.crs as ccrs
 from pyart.io import read_nexrad_archive
 from pyart.graph import RadarMapDisplay
 
-import commonMapping as commap
+from .. import common as com
 
 
 def readNEXRAD(filename):
@@ -182,7 +182,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
             print("Debugging complete!")
             display = RadarMapDisplay(qcradar, )
 
-            latMin, latMax, lonMin, lonMax = commap.set_plot_extent(cLat, cLon)
+            latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(cLat,
+                                                                      cLon)
 
             # Get the projection info for the plot axes
             crs = ccrs.LambertConformal(central_latitude=siteLat,
@@ -217,8 +218,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
             ax.background_patch.set_facecolor('#262629')
 
             # Some custom stuff
-            ax = commap.add_map_features(ax, counties=counties, roads=roads)
-            ax = commap.add_AZObs(ax)
+            ax = com.maps.add_map_features(ax, counties=counties, roads=roads)
+            ax = com.maps.add_AZObs(ax)
 
             # Clear out the crap on the edges
             ax.set_xlabel("")
