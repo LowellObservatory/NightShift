@@ -27,10 +27,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.colors import ListedColormap
 
-import cartopy.crs as ccrs
-import cartopy.feature as cfeat
-from cartopy.feature import sgeom
-import cartopy.io.shapereader as cshape
+from .. import common as com
 
 
 def readNC(filename):
@@ -102,46 +99,8 @@ def crop_image(nc, data, clat, clon, pCoeff=None):
     # Parse/grab the existing projection information
     old_grid = G16_ABI_L2_ProjDef(nc)
 
-    # pr.plot.show_quicklook(old_grid, data, coast_res='10m')
-
-    # Output grid centered on clat, clon
-    # latWid = 3.5
-    # lonWid = 3.5
-    # lonMin = clon - lonWid
-    # lonMax = clon + lonWid
-    # latMin = clat - latWid
-    # latMax = clat + latWid
-
-    # Handpicked favorites; generates all of AZ centered on the DCT
-    # latWid = 3.5
-    # lonWid = 3.5
-    # lonMin = clon - lonWid
-    # lonMax = clon + lonWid - 1.0
-    # latMin = clat - latWid
-    # latMax = clat + latWid - 0.75
-
-    # Zoomed in portion around the DCT, showing an approximate radius
-    #   of 'desiredRadius' statute miles.
-    # To do this right it's easier to think in terms of nautical miles;
-    #   See https://github.com/LowellObservatory/Camelot/issues/5 for the math.
-
-    # In *statute miles* since they're easier to measure (from Google Maps)
-    desiredRadius = 200.
-
-    # Now it's in nautical miles so we just continue
-    dRnm = desiredRadius/1.1507794
-    latWid = dRnm/60.
-    lonWid = dRnm/(np.cos(np.deg2rad(clat))*60.)
-
-    # Small fudge factor to make the aspect a little closer to 1:1
-    latWid += 0.093
-
-    print(latWid, lonWid)
-
-    lonMin = clon - lonWid
-    lonMax = clon + lonWid
-    latMin = clat - latWid
-    latMax = clat + latWid
+    latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(clat, clon,
+                                                              fudge=0.093)
 
     # Create a grid at at the specified resolution; original default was
     #   0.005 degrees or 18 arcseconds resolution, though I don't remember why
@@ -193,190 +152,6 @@ def crop_image(nc, data, clat, clon, pCoeff=None):
     return old_grid, area_def, pData, pCoeff
 
 
-def add_map_features(ax, counties=None, roads=None):
-    ax.add_feature(cfeat.COASTLINE.with_scale('10m'))
-    ax.add_feature(cfeat.BORDERS.with_scale('10m'))
-
-    # Slightly transparent rivers
-    ax.add_feature(cfeat.RIVERS.with_scale('10m'),
-                   alpha=0.75, edgecolor='aqua')
-
-    # Dotted lines for state borders
-    ax.add_feature(cfeat.STATES.with_scale('10m'),
-                   linestyle=":", edgecolor='black')
-
-    if counties is not None:
-        countfeat = cfeat.ShapelyFeature(counties, ccrs.PlateCarree())
-        ax.add_feature(countfeat, facecolor='none',
-                       edgecolor='#ff0092', alpha=0.25)
-
-    if roads is not None:
-        # Reminder that roads is a dict with keys:
-        #  interstates, fedroads, stateroads, otherroads
-        for rtype in roads:
-            good = True
-            if rtype == "Interstate":
-                rcolor = 'gold'
-                ralpha = 0.55
-            elif rtype == "Federal":
-                rcolor = 'gold'
-                ralpha = 0.55
-            elif rtype == 'State':
-                rcolor = 'LightSkyBlue'
-                ralpha = 0.55
-            elif rtype == "Other":
-                rcolor = 'LightSkyBlue'
-                ralpha = 0.45
-            else:
-                good = False
-
-            # Only plot the ones specifed above; if it doesn't fit one of
-            #   those categories then skip it completely because something
-            #   is wrong or changed.
-            if good is True:
-                sfeat = cfeat.ShapelyFeature(roads[rtype], ccrs.PlateCarree())
-                ax.add_feature(sfeat, facecolor='none',
-                               edgecolor=rcolor, alpha=ralpha)
-
-    return ax
-
-
-def parseCounties(shpfile, center=None, centerRad=7.):
-    """
-    """
-
-    counties = cshape.Reader(shpfile)
-
-    # If we have coordinates of the center of the map, spatially filter
-    #   the roads down to just those w/in 500 miles of the center
-    spatialFilter = False
-    if center is not None:
-        spatialFilter = True
-        mapCenterPt = sgeom.Point(center[0], center[1])
-
-    clist = []
-    # A dict is far easier to interact with so make one
-    for rec in counties.records():
-        if spatialFilter is True:
-            # Since the geometry coordinates are in lon/lat, the
-            #   corresponding 'dist' will be too; therefore we filter
-            #   based on a radius of N degrees from the center
-            # centerRad = 7 covers a big area so we'll roll with that
-            dist = rec.geometry.distance(mapCenterPt)
-            if dist <= centerRad:
-                store = True
-            else:
-                store = False
-        else:
-            store = True
-
-        if store is True:
-            clist.append(rec.geometry)
-
-    return clist
-
-
-def parseRoads(rclasses, center=None, centerRad=7.):
-    """
-    See https://www.naturalearthdata.com/downloads/10m-cultural-vectors/roads/
-    for field information; below is just a quick summary.
-
-    CLASS:
-        Interstate (Interstates and Quebec Autoroutes)
-        Federal (US Highways, Mexican Federal Highways, Trans-Canada Highways)
-        State (US State, Mexican State, and Canadian Provincial Highways)
-        Other (any other road class)
-        Closed (road is closed to public)
-        U/C (road is under construction)
-    TYPE:
-        Tollway
-        Freeway
-        Primary
-        Secondary
-        Other Paved
-        Unpaved
-        Winter (ice road, open winter only)
-        Trail
-        Ferry
-    """
-    rds = cshape.natural_earth(resolution='10m',
-                               category='cultural',
-                               name='roads_north_america')
-
-    rdsrec = cshape.Reader(rds)
-
-    # If we have coordinates of the center of the map, spatially filter
-    #   the roads down to just those w/in 500 miles of the center
-    spatialFilter = False
-    if center is not None:
-        spatialFilter = True
-        mapCenterPt = sgeom.Point(center[0], center[1])
-
-    rdict = {}
-    # A dict is far easier to interact with so make one
-    for rec in rdsrec.records():
-        for key in rclasses:
-            if rec.attributes['class'] == key:
-                # If it's a road class of type we want, test more or store
-                if spatialFilter is True:
-                    # Since the geometry coordinates are in lon/lat, the
-                    #   corresponding 'dist' will be too; therefore we filter
-                    #   based on a radius of N degrees from the center
-                    # centerRad = 7 covers a big area so we'll roll with that
-                    dist = rec.geometry.distance(mapCenterPt)
-                    if dist <= centerRad:
-                        store = True
-                    else:
-                        store = False
-                else:
-                    store = True
-
-                if store is True:
-                    try:
-                        rdict[key].append(rec.geometry)
-                    except KeyError:
-                        # This means the key hasn't been created yet so make it
-                        #   and then fill it with the value.
-                        #   It should then work fine the next time
-                        rdict.update({key: [rec.geometry]})
-
-    return rdict
-
-
-def add_AZObs(ax):
-    """
-    Hardcoded this for now, with a Lowell/Mars Hill getting a "*" marker.
-
-    Would be easy to pass in a dict of locations and marker/color info too
-    and just loop through that, but since I only have 5 now it's no big deal.
-    """
-    # Lowell
-    ax.plot(-111.664444, 35.202778, marker='*', color='red',
-            markersize=8, alpha=0.95, transform=ccrs.Geodetic())
-
-    # DCT
-    ax.plot(-111.4223, 34.7443, marker='o', color='red', markersize=6,
-            alpha=0.95, transform=ccrs.Geodetic())
-
-    # Anderson Mesa
-    ax.plot(-111.535833, 35.096944, marker='o', color='red',
-            markersize=6, alpha=0.95, transform=ccrs.Geodetic())
-
-    # KPNO
-    ax.plot(-111.5967, 31.9583, marker='o', color='purple',
-            markersize=5, alpha=0.95, transform=ccrs.Geodetic())
-
-    # LBT
-    ax.plot(-109.889064, 32.701308, marker='o', color='purple',
-            markersize=5, alpha=0.95, transform=ccrs.Geodetic())
-
-    # MMT
-    ax.plot(-110.885, 31.6883, marker='o', color='purple',
-            markersize=5, alpha=0.95, transform=ccrs.Geodetic())
-
-    return ax
-
-
 def getCmap(vmin=160, vmax=330, trans=None):
     rnge = vmax - vmin
     # NOTE: All values are in Kelvin
@@ -412,43 +187,24 @@ def getCmap(vmin=160, vmax=330, trans=None):
     return newcmp
 
 
-def makePlots(inloc, outloc, roads=None, counties=None,
-              cmap=None, irange=None, forceRegen=False):
+def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
+              cmap=None, forceRegen=False):
 
     # Warning, you may explode
     #  https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.switch_backend
     plt.switch_backend("Agg")
 
-    cLat = 34.7443
-    cLon = -111.4223
+    cLon = mapCenter[0]
+    cLat = mapCenter[1]
 
     flist = sorted(glob.glob(inloc + "*.nc"))
-
-    # Just a little helper for at least the roads. We won't do this
-    #   for counties, though, since those datafiles are manually read
-    if roads is None:
-        rclasses = ["Interstate", "Federal"]
-
-        # On the assumption that we'll plot something, downselect the full
-        #   road database into the subset we want
-        print("Parsing road data...")
-        print("\tClasses: %s" % (rclasses))
-
-        # roads will be a dict with keys of rclasses and values of geometries
-        roads = parseRoads(rclasses)
-        print("Roads parsed!")
-
-    if irange is None:
-        vmin, vmax = 160, 330
-    else:
-        vmin, vmax = irange[0], irange[1]
 
     if cmap is None:
         # Construct/grab the color map.
         #   Purposefully leaving this hardcoded here for now, because it's
         #   so easy to make a god damn mess of the colormap if you don't know
         #   what you're doing.
-        cmap = getCmap(vmin=vmin, vmax=vmax)
+        cmap = getCmap(vmin=160., vmax=330.)
 
     # i is the number-of-images processed counter
     i = 0
@@ -534,11 +290,11 @@ def makePlots(inloc, outloc, roads=None, counties=None,
             ax.background_patch.set_facecolor('#262629')
 
             # Some custom stuff
-            ax = add_map_features(ax, counties=counties, roads=roads)
-            ax = add_AZObs(ax)
+            ax = com.maps.add_map_features(ax, counties=counties, roads=roads)
+            ax = com.maps.add_AZObs(ax)
 
             plt.imshow(ndat, transform=crs, extent=crs.bounds, origin='upper',
-                       vmin=vmin, vmax=vmax, interpolation='none',
+                       vmin=160., vmax=330., interpolation='none',
                        cmap=cmap)
             # plt.colorbar()
 
