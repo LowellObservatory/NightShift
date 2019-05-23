@@ -15,8 +15,6 @@ Requires AWS credentials in the awsCreds.conf file.
 
 from __future__ import division, print_function, absolute_import
 
-import glob
-from os import mkdir
 from os.path import basename
 from datetime import timedelta as td
 
@@ -24,27 +22,11 @@ import boto3
 import botocore
 import numpy as np
 
-
-def checkOutDir(outdir):
-    """
-    """
-    # Check if the directory exists, and if not, create it!
-    try:
-        mkdir(outdir)
-    except FileExistsError:
-        pass
-    except Exception as err:
-        # Catch for other (permission?) errors just to be safe for now
-        print(str(err))
-
-    flist = sorted(glob.glob(outdir + "/*.nc"))
-    flist = [basename(each) for each in flist]
-
-    return flist
+from .. import common as com
 
 
-def GOESAWSgrab(aws_keyid, aws_secretkey, now, outdir,
-                timedelta=6, forceDown=False):
+def NEXRADAWSgrab(aws_keyid, aws_secretkey, now, outdir,
+                  timedelta=6, forceDown=False):
     """
     AWS IAM user key
     AWS IAM user secret key
@@ -52,44 +34,50 @@ def GOESAWSgrab(aws_keyid, aws_secretkey, now, outdir,
     Hours to query back from above
     """
     # AWS GOES bucket location/name
-    #  https://registry.opendata.aws/noaa-goes/
-    awsbucket = 'noaa-goes16'
+    awsbucket = 'noaa-nexrad-level2'
     awszone = 'us-east-1'
 
-    # ABI: Advanced Baseline Imager
-    # L2: "Level 2" (processed) data
-    # CMIPC are the "Cloud & Moisture Imagery CONUS" products
-    #   these are derived products based on the "ABI-L1b-Rad*" data
-    #   See also: https://www.ncdc.noaa.gov/data-access/satellite-data/goes-r-series-satellites
-    inst = "ABI-L2-CMIPC"
-    channel = 13
+    # Station ID that you want to download
+    station = "KFSX"
 
     # Check our output directory for files already downloaded
-    donelist = checkOutDir(outdir)
+    donelist = com.utils.checkOutDir(outdir)
 
     # Sample key:
-    # ABI-L2-CMIPC/2018/319/23/OR_ABI-L2-CMIPC-M3C13_G16_ +
-    #                          s20183192332157_e20183192334541_ +
-    #                          c20183192334582.nc
+    # 2019/05/17/KFSX/KFSX20190517_000556_V06
 
     # Construct the key prefixes between the oldest and the newest
     querybins = []
+    minmaxhour = []
 
     # timedelta MUST be an int...
     timedelta = np.int(np.round(timedelta, decimals=0))
 
+    # Construct the query keys; this will get us to the relevant bits
+    #   in the AWS bucket,
     for i in range(timedelta, -1, -1):
         delta = td(hours=i)
         qdt = (now - delta).timetuple()
 
         # Include the year so it works on 1/1 UT
         qyear = qdt.tm_year
-        qday = qdt.tm_yday
+        qmonth = qdt.tm_mon
+        qday = qdt.tm_mday
         qhour = qdt.tm_hour
 
-        ckey = "%s/%04d/%03d/%02d/" % (inst, qyear, qday, qhour)
-        querybins.append(ckey)
-    # print(querybins)
+        ckey = "%04d/%02d/%02d/%s" % (qyear, qmonth, qday, station)
+        # Since we're hacking against the GOES version, lets just skip things
+        #   if we just keep making the same string; GOES bucket was organized
+        #   by hour, so that made more sense back then
+        # (check against i==timedelta because we loop backwards)
+        if i == timedelta:
+            querybins.append(ckey)
+            minmaxhour.append(qhour)
+        else:
+            if ckey != querybins[-1]:
+                querybins.append(ckey)
+
+    minmaxhour.append(qhour)
 
     s3 = boto3.resource('s3', awszone,
                         aws_access_key_id=aws_keyid,
@@ -105,7 +93,22 @@ def GOESAWSgrab(aws_keyid, aws_secretkey, now, outdir,
             raise
 
     matches = []
-    for qt in querybins:
+    # Bit of a hack; for the first querybin, there's a hour limit that
+    #   we won't want any data before because it'll be outside of our
+    #   requested time range.  Ditto for the last bin, but it'll be
+    #   that we don't want any data past that point.  In between,
+    #   we assume that we want absolutely everything so there is no limit.
+    minHour = minmaxhour[0]
+    maxHour = minmaxhour[1]
+
+    for i, qt in enumerate(querybins):
+        if i == 0:
+            cutOff = "min"
+        elif i == len(qt):
+            cutOff = "max"
+        else:
+            cutOff = None
+
         print("Querying:", qt)
         try:
             todaydata = buck.objects.filter(Prefix=qt)
@@ -116,23 +119,42 @@ def GOESAWSgrab(aws_keyid, aws_secretkey, now, outdir,
 
                 # print("Found %s" % (ckey))
 
-                # Specific filename to search for. Do it in two parts,
-                #   one here to select the instrument/product and another
-                #   to select the desired channel
-                # Backup of original query:
-                # fkey = "OR_%s-M3C%02d_G16" % (inst, channel)
-                fkey = "OR_%s-M" % (inst)
-                chankey = "C%02d" % (channel)
+                # Specific filename to search for. Pretty simple since
+                #   there aren't many variations, just the occasional
+                #   '_MDM' file that we will ignore
+                qtp = qt.split('/')
+                fkey = "%s%s%s%s" % (qtp[3], qtp[0], qtp[1], qtp[2])
 
-                # Bit of hackey magic. Sorry. Needed to ignore the "mode"
-                #   parameter but still check the channel
-                keyparts = ckey.split("_")[1].split("-")[3]
+                # Bit of hackey magic. Sorry.
+                keyhour = int(ckey.split("_")[1][0:2])
+
+                skipFile = True
+                if cutOff == "min":
+                    if keyhour < minHour:
+                        skipFile = True
+                        print("Skipping file %s, too old!" % (ckey))
+                    else:
+                        skipFile = False
+                elif cutOff == "max":
+                    if keyhour > maxHour:
+                        skipFile = True
+                        print("Skipping file %s, too new!" % (ckey))
+                    else:
+                        skipFile = False
+                else:
+                    skipFile = False
+
+                # Skip the "_MDM" file, whatever it is
+                if len(ckey.split("_")) == 4:
+                    if ckey.split("_")[3] == "MDM":
+                        skipFile = True
+                        print("Skipping file %s, it's an MDM!" % (ckey))
 
                 # Now only select ones that match our product and our channel
-                if ckey.startswith(fkey) and keyparts.endswith(chankey):
+                if ckey.startswith(fkey) and skipFile is False:
                     # Construct the output filename to save it as
-                    oname = ckey.split("_")[4][1:]
-                    oname = "%s/%s_C%02d.nc" % (outdir, oname, channel)
+                    oname = "_".join(ckey.split("_")[0:2])
+                    oname = "%s/%s" % (outdir, oname)
 
                     # Just basename it so we can quickly check to see if
                     #   we already downloaded this file; if so, skip it.

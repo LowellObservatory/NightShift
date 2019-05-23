@@ -15,9 +15,7 @@ from __future__ import division, print_function, absolute_import
 
 import os
 import time
-import glob
 import subprocess as subp
-import configparser as conf
 from shutil import copyfile
 from datetime import datetime as dt
 
@@ -25,8 +23,8 @@ import imageio
 import imageio.core.util
 from ligmos.utils import logs
 
-import goes16_aws as gaws
-import plotGOES as pgoes
+from nightshift.goes import plot, aws
+from nightshift.common import maps, utils
 
 
 def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
@@ -40,7 +38,7 @@ def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
     images = []
     fnames = []
     for filename in inlist:
-        diff = getFilenameAgeDiff(filename, now, dtfmt=dtfmt)
+        diff = utils.getFilenameAgeDiff(filename, now, dtfmt=dtfmt)
         if diff < maxage:
             images.append(imageio.imread(filename))
             fnames.append(filename)
@@ -81,68 +79,6 @@ def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
         print("GIF saved as %s" % (outname))
 
 
-def parseConfFile(filename):
-    """
-    """
-    try:
-        config = conf.SafeConfigParser()
-        config.read_file(open(filename, 'r'))
-    except IOError as err:
-        config = None
-        print(str(err))
-        return config
-
-    sections = config.sections()
-    tsections = ' '.join(sections)
-
-    print("Found the following sections in the configuration file:")
-    print("%s\n" % tsections)
-
-    return config
-
-
-def getFilenameAgeDiff(fname, now, dtfmt="%Y%j%H%M%S%f"):
-    """
-    NOTE: HERE 'maxage' is already in seconds! Convert before calling.
-    """
-    # Need to basename it to get just the actual filename and not the path
-    beach = os.path.basename(fname)
-    try:
-        dts = dt.strptime(beach.split("_")[0], dtfmt)
-        diff = (now - dts).total_seconds()
-    except Exception as err:
-        # TODO: Catch the right datetime conversion error!
-        print(str(err))
-        # Make it "current" to not delete it
-        diff = 0
-
-    return diff
-
-
-def clearOldFiles(inloc, fmask, now, maxage=24., dtfmt="%Y%j%H%M%S%f"):
-    """
-    'maxage' is in hours
-    """
-    maxage *= 60. * 60.
-    flist = sorted(glob.glob(inloc + fmask))
-
-    remaining = []
-    for each in flist:
-        diff = getFilenameAgeDiff(each, now, dtfmt=dtfmt)
-        if diff > maxage:
-            print("Deleting %s since it's too old (%.3f hr)" %
-                  (each, diff/60./60.))
-            try:
-                os.remove(each)
-            except OSError as err:
-                # At least see what the issue was
-                print(str(err))
-        else:
-            remaining.append(each)
-
-    return remaining
-
-
 def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
          forceDown=False, forceRegen=False):
     """
@@ -164,7 +100,7 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
     dout = outdir + "/raws/"
     pout = outdir + "/pngs/"
     lout = outdir + "/nows/"
-    cfiles = "./shapefiles/cb_2018_us_county_5m/"
+    cfiles = "./nightshift/resources/cb_2018_us_county_5m/"
 
     # in degrees; for spatially filtering map shapefiles
     mapcenter = [-111.4223, 34.7443]
@@ -174,7 +110,6 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
     #   Ok to just hardcopy these since they'll be staticly named
     latestname = '%s/g16aws_latest.png' % (lout)
     vid1 = "%s/g16aws_latest.gif" % (lout)
-    vid2 = "%s/g16aws_latest.mp4" % (lout)
 
     # Need this for parsing the filename into a dt obj
     dtfmt = "%Y%j%H%M%S%f"
@@ -189,16 +124,16 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
     print("\tClasses: %s" % (rclasses))
 
     # roads will be a dict with keys of rclasses and values of geometries
-    roads = pgoes.parseRoads(rclasses,
-                             center=mapcenter, centerRad=filterRadius)
+    roads = maps.parseRoads(rclasses,
+                            center=mapcenter, centerRad=filterRadius)
     for rkey in rclasses:
         print("%s: %d found within %d degrees of center" % (rkey,
                                                             len(roads[rkey]),
                                                             filterRadius))
 
     print("Parsing county data...")
-    counties = pgoes.parseCounties(cfiles + "cb_2018_us_county_5m.shp",
-                                   center=mapcenter, centerRad=filterRadius)
+    counties = maps.parseCounties(cfiles + "cb_2018_us_county_5m.shp",
+                                  center=mapcenter, centerRad=filterRadius)
     print("%d counties found within %d degrees of center" % (len(counties),
                                                              filterRadius))
 
@@ -207,7 +142,7 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
     #   so easy to make a god damn mess of the colormap if you don't know
     #   what you're doing.
     vmin, vmax = 160, 330
-    gcmap = pgoes.getCmap(vmin=vmin, vmax=vmax)
+    gcmap = plot.getCMap(vmin=vmin, vmax=vmax)
 
     print("Starting infinite loop...")
     while True:
@@ -216,8 +151,8 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
         #   If they exist, they'll be skipped unless forceDown is True
         when = dt.utcnow()
         print("Looking for files!")
-        ffiles = gaws.GOESAWSgrab(aws_keyid, aws_secretkey, when, dout,
-                                  timedelta=keephours, forceDown=forceDown)
+        ffiles = aws.GOESAWSgrab(aws_keyid, aws_secretkey, when, dout,
+                                 timedelta=keephours, forceDown=forceDown)
 
         print("Found the following files:")
         for f in ffiles:
@@ -226,9 +161,9 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
         print("Making the plots...")
         # TODO: Return the projection coordinates (and a timestamp of them)
         #   so they can be reused between loop cycles.
-        nplots = pgoes.makePlots(dout, pout, cmap=gcmap,
-                                 roads=roads, counties=counties,
-                                 forceRegen=forceRegen, irange=[vmin, vmax])
+        nplots = plot.makePlots(dout, pout, mapcenter, cmap=gcmap,
+                                roads=roads, counties=counties,
+                                forceRegen=forceRegen)
         print("%03d plots done!" % (nplots))
 
         # ... Do what the function says! Return a list of current files
@@ -240,10 +175,10 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
         fudge = 1.
         # BUT only do anything if we actually made a new file!
         if nplots > 0:
-            cpng = clearOldFiles(pout, "*.png", when,
-                                 maxage=keephours+fudge, dtfmt=dtfmt)
-            craw = clearOldFiles(dout, "*.nc", when,
-                                 maxage=keephours+fudge, dtfmt=dtfmt)
+            cpng = utils.clearOldFiles(pout, "*.png", when,
+                                       maxage=keephours+fudge, dtfmt=dtfmt)
+            craw = utils.clearOldFiles(dout, "*.nc", when,
+                                       maxage=keephours+fudge, dtfmt=dtfmt)
 
             print("%d, %d raw and png files remain within %.1f + %.1f hours" %
                   (len(cpng), len(craw), keephours, fudge))
@@ -294,16 +229,16 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
 
 
 if __name__ == "__main__":
-    outdir = "./outputs/"
-    awsconf = "./awsCreds.conf"
+    outdir = "./outputs/goes/"
+    awsconf = "./config/awsCreds.conf"
     forceDownloads = False
     forceRegenPlot = False
-    logname = './logs/goesmcgoesface.log'
+    logname = './outputs/logs/goesmcgoesface.log'
 
     # Set up logging (using ligmos' quick 'n easy wrapper)
     logs.setup_logging(logName=logname, nLogs=30)
 
-    creds = parseConfFile(awsconf)
+    creds = utils.parseConfFile(awsconf)
 
     main(outdir, creds, forceDown=forceDownloads, forceRegen=forceRegenPlot)
     print("Exiting!")
