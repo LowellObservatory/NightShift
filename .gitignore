@@ -13,13 +13,7 @@ pngs
 *.gif
 *.mp4
 *.log
-*/logs/*
-WebcamMcWebcamface/images/*
-GOESMcGOESface/outputs/*
-RadarLove/outputs/*
-CloudyMcCloudface/subbed/*
-CloudyMcCloudface/sky.png
-
+outputs/*
 modules.conf
 dbqueries.conf
 plot*.html
