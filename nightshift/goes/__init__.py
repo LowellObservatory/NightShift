@@ -1,1 +1,1 @@
-from . import plotGOES
+from . import plot

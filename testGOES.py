@@ -43,6 +43,6 @@ if __name__ == "__main__":
                                          centerRad=filterRadius)
     print("%d counties found within %d degrees of center" % (len(counties),
                                                              filterRadius))
-    goes.plotGOES.makePlots(inloc, outloc, mapcenter, cmap=cmap,
-                            roads=roads, counties=counties,
-                            forceRegen=True)
+    goes.plot.makePlots(inloc, outloc, mapcenter, cmap=cmap,
+                        roads=roads, counties=counties,
+                        forceRegen=True)

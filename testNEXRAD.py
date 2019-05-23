@@ -43,6 +43,6 @@ if __name__ == "__main__":
                                          centerRad=filterRadius)
     print("%d counties found within %d degrees of center" % (len(counties),
                                                              filterRadius))
-    radar.plotNEXRAD.makePlots(inloc, outloc, mapcenter, cmap=cmap,
-                               roads=roads, counties=counties,
-                               forceRegen=True)
+    radar.plot.makePlots(inloc, outloc, mapcenter, cmap=cmap,
+                         roads=roads, counties=counties,
+                         forceRegen=True)

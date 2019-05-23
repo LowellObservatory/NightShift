@@ -1,1 +1,1 @@
-from . import plotNEXRAD
+from . import plot
