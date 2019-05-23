@@ -27,7 +27,7 @@ if __name__ == "__main__":
     mapcenter = [-111.4223, 34.7443]
     filterRadius = 7.
 
-    cmap = goes.plotGOES.getCmap()
+    cmap = goes.plot.getCMap()
     rclasses = ["Interstate", "Federal"]
 
     print("Reading road data...")

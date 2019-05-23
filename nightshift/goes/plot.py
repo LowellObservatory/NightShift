@@ -152,7 +152,7 @@ def crop_image(nc, data, clat, clon, pCoeff=None):
     return old_grid, area_def, pData, pCoeff
 
 
-def getCmap(vmin=160, vmax=330, trans=None):
+def getCMap(vmin=160, vmax=330, trans=None):
     rnge = vmax - vmin
     # NOTE: All values are in Kelvin
     #   trans must be between vmin and vmax!
@@ -204,7 +204,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
         #   Purposefully leaving this hardcoded here for now, because it's
         #   so easy to make a god damn mess of the colormap if you don't know
         #   what you're doing.
-        cmap = getCmap(vmin=160., vmax=330.)
+        cmap = getCMap(vmin=160., vmax=330.)
 
     # i is the number-of-images processed counter
     i = 0

@@ -27,7 +27,7 @@ if __name__ == "__main__":
     mapcenter = [-111.4223, 34.7443]
     filterRadius = 7.
 
-    cmap = radar.plotNEXRAD.getCmap()
+    cmap = radar.plot.getCMap()
     rclasses = ["Interstate", "Federal"]
 
     print("Reading road data...")

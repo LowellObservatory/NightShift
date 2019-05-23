@@ -42,7 +42,7 @@ def readNEXRAD(filename):
     return dat
 
 
-def getCmap():
+def getCMap():
     # Pulled by hand from the NWS NEXRAD plots
     ct = ["#ccffff", "#cc99cc", "#996699", "#663366", "#cccc99", "#999966",
           "#646464", "#04e9e7", "#019ff4", "#0300f4", "#02fd02", "#01c501",
@@ -137,7 +137,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
     flist = sorted(glob.glob(inloc + "/*"))
 
     if cmap is None:
-        cmap = getCmap()
+        cmap = getCMap()
 
     # i is the number-of-images processed counter
     i = 0
