@@ -175,8 +175,11 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
         fudge = 1.
         # BUT only do anything if we actually made a new file!
         if nplots > 0:
+            ofiles = dtfmt + ".png"
             cpng = utils.clearOldFiles(pout, "*.png", when,
                                        maxage=keephours+fudge, dtfmt=dtfmt)
+
+            ofiles = dtfmt + ".nc"
             craw = utils.clearOldFiles(dout, "*.nc", when,
                                        maxage=keephours+fudge, dtfmt=dtfmt)
 

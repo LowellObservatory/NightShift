@@ -92,11 +92,6 @@ def getFilenameAgeDiff(fname, now, dtfmt="%Y%j%H%M%S%f"):
     # Need to basename it to get just the actual filename and not the path
     beach = os.path.basename(fname)
 
-    # Match the basename-ed filename length to our dtfmt string
-    #   This is so we don't have to worry about 'unconverted data remains'
-    #   errors from strptime below
-    beach = beach[:len(dtfmt)]
-
     try:
         dts = dt.strptime(beach, dtfmt)
         diff = (now - dts).total_seconds()
