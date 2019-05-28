@@ -155,6 +155,11 @@ def simpleImageCopy(url, location):
 
 def getLastFileURL(url, fmask):
     """
+    Assumes that the urls as returned by listFD are actually well named and
+    just sorted() on the list will return a time-ordered list going from
+    youngest to oldest.
+
+    Not guaranteed, so beware.
     """
     flist = sorted(listFD(url, fmask))
     lastFile = flist[-1]
