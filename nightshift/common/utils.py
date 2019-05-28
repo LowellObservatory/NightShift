@@ -42,6 +42,23 @@ def parseConfFile(filename):
     return config
 
 
+def assignConf(classInstance, conf):
+    """
+    Accepts a ConfigParser instance and sets the parameters found within it
+    """
+    # Assign the conf. file section title as the webcam name
+    classInstance.name = conf.name
+
+    # Fill in the rest of the conf. file keys
+    for key in conf.keys():
+        if key.lower() == 'enabled':
+            setattr(classInstance, key, conf.getboolean(key))
+        else:
+            setattr(classInstance, key, conf[key])
+
+    return classInstance
+
+
 def getFilenameAgeDiff(fname, now, dtfmt="%Y%j%H%M%S%f"):
     """
     NOTE: HERE 'maxage' is already in seconds! Convert before calling.
@@ -124,19 +141,26 @@ def copyStaticFilenames(nstaticfiles, lout, staticname, cpng):
             print("WHOOPSIE! COPY FAILED")
 
 
-def checkOutDir(outdir):
+def checkOutDir(outdir, getList=True):
     """
     """
     # Check if the directory exists, and if not, create it!
     try:
-        os.mkdir(outdir)
+        os.makedirs(outdir)
     except FileExistsError:
         pass
+    except OSError as err:
+        # Something bad happened. Could be a race condition between
+        #   the check for dirExists and the actual creation of the
+        #   directory/tree, but scream and signal an abort.
+        print(str(err))
     except Exception as err:
         # Catch for other (permission?) errors just to be safe for now
         print(str(err))
 
-    flist = sorted(glob.glob(outdir + "/*"))
-    flist = [os.path.basename(each) for each in flist]
+    flist = None
+    if getList is True:
+        flist = sorted(glob.glob(outdir + "/*"))
+        flist = [os.path.basename(each) for each in flist]
 
     return flist

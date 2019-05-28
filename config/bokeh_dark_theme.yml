@@ -1,0 +1,43 @@
+# NightWatch Bokeh theme specification
+
+attrs:
+    Figure:
+        background_fill_color: '#262629'
+        border_fill_color: '#262629'
+        outline_line_color: '#4a4a4c'
+    Axis:
+        axis_line_color: '#d8d9da'
+        axis_label_text_color: '#d8d9da'
+        major_label_text_color: '#d8d9da'
+        major_tick_line_color: '#d8d9da'
+        minor_tick_line_color: '#d8d9da'
+        major_tick_line_alpha: 0.7
+        minor_tick_line_alpha: 0.7
+    Grid:
+        grid_line_dash: [6, 4]
+        grid_line_alpha: .2
+    Title:
+        text_color: '#d8d9da'
+    Legend:
+        background_fill_alpha: 1.0
+        background_fill_color: '#2f2f32'
+        border_line_color: '#2f2f32'
+        label_text_color: '#d8d9da'
+        click_policy: 'hide'
+        inactive_fill_alpha: 0.8
+        inactive_fill_color: '#2f2f32'
+    CrosshairTool:
+        dimensions: 'height'
+        line_color: '#E24D42'
+        line_alpha: 0.75
+    BoxZoomTool:
+        dimensions: 'width'
+    DataTable:
+        background: '#262629'
+        index_header: ''
+        reorderable: False
+        sortable: False
+        width: 400
+
+    #     border_fill_color: '#262629'
+    #     outline_line_color: '#4a4a4c'

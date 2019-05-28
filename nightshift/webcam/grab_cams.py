@@ -10,9 +10,13 @@
 
 from __future__ import division, print_function, absolute_import
 
+import re
 import time
-import shutil
 from datetime import datetime as dt
+
+import pkg_resources as pkgr
+
+from bs4 import BeautifulSoup
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -26,9 +30,6 @@ class Webcam():
     Class to contain all the important bits of webcam connection information
     """
     def __init__(self):
-        """
-        Usual init function; doesn't allow setting via **kwargs though
-        """
         self.name = None
         self.url = None
         self.user = None
@@ -37,22 +38,34 @@ class Webcam():
         self.floc = None
         self.enabled = False
 
-    def assignConf(self, conf):
-        """
-        Accepts a ConfigParser instance and sets the __init__ params
-        """
-        # Assign the conf. file section title as the webcam name
-        self.name = conf.name
 
-        # Fill in the rest of the conf. file keys
-        for key in conf.keys():
-            if key.lower() == 'enabled':
-                setattr(self, key, conf.getboolean(key))
-            else:
-                setattr(self, key, conf[key])
+def grabSet(camset, failimg=None, interval=0.5):
+    """
+    Grab all camera images in the given dictionary
+    """
+    for cam in camset:
+        currentCamera = camset[cam]
+        print('Retrieving camera image: %s' % (currentCamera.name))
+
+        outfile = "%s/%s" % (currentCamera.odir, currentCamera.oname)
+        try:
+            if currentCamera.type.lower() == 'webcam':
+                camGrabbie(currentCamera, outfile)
+            elif currentCamera.type.lower() == 'opendir':
+                grabFromOpenDirectory(currentCamera, outfile)
+        except RCE as err:
+            # This handles the connection error cases from the specific
+            #   image grabbing utility functions. They should just
+            #   raise RCE directly when/if needed
+            print(str(err))
+
+            tagErrorImage(outfile, failimg=failimg,
+                          camname=currentCamera.name)
+
+        time.sleep(interval)
 
 
-def camGrabbie(cam):
+def camGrabbie(cam, outfile):
     """
     Grab an image from an individual camera as defined by the Webcam class
     """
@@ -63,8 +76,8 @@ def camGrabbie(cam):
 
     # NOTE: This'll barf if the directory (cam.floc) doesn't exist.
     #   Make sure to do that check in your calling code!
-    print("Attempting to write image to %s" % (cam.floc))
-    with open(cam.floc, "wb") as f:
+    print("Attempting to write image to %s" % (outfile))
+    with open(outfile, "wb") as f:
         img = httpget(cam.url, auth=auth)
         # Check the HTTP response;
         #   200 - 400 == True
@@ -81,7 +94,7 @@ def camGrabbie(cam):
             raise RCE
 
 
-def tagErrorImage(failimg, location, camname=None):
+def tagErrorImage(location, failimg=None, camname=None):
     """
     Given the failure image filename, add a timestamp to it
     starting at the specified pixel location (lower left corner of text).
@@ -91,11 +104,18 @@ def tagErrorImage(failimg, location, camname=None):
 
     Will save the resulting image to location when it's done.
     """
-    font = ImageFont.FreeTypeFont('./fonts/GlacialIndifference-Bold.otf',
-                                  size=24, encoding='unic')
+    # This is in the package resources directory specified in the package!
+    fontfile = "resources/fonts/GlacialIndifference-Bold.otf"
+
+    ff = pkgr.resource_filename('nightshift', fontfile)
+    font = ImageFont.FreeTypeFont(ff, size=24, encoding='unic')
 
     timestamp = dt.utcnow()
     timestring = timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    if failimg is None:
+        failimgloc = "resources/images/percy_txt.jpg"
+        failimg = pkgr.resource_filename('nightshift', failimgloc)
 
     img = Image.open(failimg)
     dtxt = ImageDraw.Draw(img)
@@ -115,48 +135,68 @@ def tagErrorImage(failimg, location, camname=None):
     img.save(location)
 
 
-def grabSet(camset, failimg, interval=0.5):
-    """
-    Grab all camera images
-    """
-    for cam in camset:
-        currentCamera = camset[cam]
-        print('Retrieving camera image: %s' % (currentCamera.name))
-
-        try:
-            camGrabbie(currentCamera)
-        except RCE as err:
-            print(str(err))
-            tagErrorImage(failimg, currentCamera.floc,
-                          camname=currentCamera.name)
-            # shutil.copy(failimg, currentCamera.floc)
-
-        time.sleep(interval)
-
-
-def simpleImageCopy(url, location, failimg):
+def simpleImageCopy(url, location):
     """
     Download the file from the given URL to the given location.
-    If that fails, copy the specified failure image to the location instead.
+       NOTE: The download failure condition will be handled elsewhere.
     """
 
     if url is None:
-        failed = True
-    else:
-        failed = False
+        raise RCE
 
     # NOTE: This'll barf if the directory (cam.floc) doesn't exist.
     #   Make sure to do that check in your calling code!
     print("Attempting to write image to %s" % (location))
     with open(location, "wb") as f:
-        if failed is False:
-            try:
-                print('Retrieving image from: %s' % (url))
-                img = httpget(url)
-                f.write(img.content)
-            except RCE as err:
-                print(str(err))
-                failed = True
-        else:
-            print("Failed to find the latest image!")
-            shutil.copy(failimg, location)
+        print('Retrieving image from: %s' % (url))
+        img = httpget(url)
+        f.write(img.content)
+
+
+def getLastFileURL(url, fmask):
+    """
+    """
+    flist = sorted(listFD(url, fmask))
+    lastFile = flist[-1]
+
+    return lastFile
+
+
+def listFD(url, fmask):
+    try:
+        page = httpget(url, timeout=10.).text
+    except Exception as err:
+        # Can't find what exception the timeout raises, so catch everything
+        #   for now and then go back in and put the correct one into there.
+        print(str(err))
+        page = None
+        urls = None
+
+    # fmask in the .conf file should be a vaild python RE specification!!
+    searcher = re.compile(fmask)
+
+    if page is not None:
+        soup = BeautifulSoup(page, 'html.parser')
+        urls = []
+        for node in soup.find_all('a'):
+            nodehref = node.get('href')
+            # Now filter based on our given filemask
+            #   Easiest to use just a regular expression
+            searchresult = searcher.match(nodehref)
+            if searchresult is not None:
+                urls.append(url + '/' + node.get('href'))
+
+    return urls
+
+
+def grabFromOpenDirectory(curcam, outfile):
+    """
+    """
+    imgURL = None
+    try:
+        imgURL = getLastFileURL(curcam.url, curcam.fmas)
+    except IndexError as err:
+        print(str(err))
+
+    if imgURL is not None:
+        simpleImageCopy(imgURL, outfile)
