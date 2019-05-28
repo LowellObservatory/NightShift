@@ -1,0 +1,16 @@
+# This assumes that the pytest image has already been made
+#   as required for the DCTStack/DataServants
+FROM pytest
+
+USER lig:lig
+WORKDIR /home/lig/Codes/
+COPY --chown=lig:lig . ./NightShift/
+WORKDIR /home/lig/Codes/NightShift
+RUN pip install -e
+
+WORKDIR /home/lig/Codes/NightShift/outputs
+RUN mkdir logs images goes radar webcams
+RUN mkdir goes/raws goes/nows goes/pngs
+RUN mkdir radar/raws radar/nows radar/pngs
+
+WORKDIR /home/lig/Codes/NightShift
