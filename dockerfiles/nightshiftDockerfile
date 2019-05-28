@@ -6,8 +6,11 @@ USER lig:lig
 WORKDIR /home/lig/Codes/
 COPY --chown=lig:lig . ./NightShift/
 WORKDIR /home/lig/Codes/NightShift
+
+USER root:root
 RUN pip install -e .
 
+USER lig:lig
 WORKDIR /home/lig/Codes/NightShift/outputs
 RUN mkdir logs images goes radar webcams
 RUN mkdir goes/raws goes/nows goes/pngs
