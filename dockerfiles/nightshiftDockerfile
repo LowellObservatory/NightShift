@@ -11,6 +11,7 @@ USER root:root
 RUN pip install -e .
 
 USER lig:lig
+RUN mkdir outputs
 WORKDIR /home/lig/Codes/NightShift/outputs
 RUN mkdir logs images goes radar webcams
 RUN mkdir goes/raws goes/nows goes/pngs
