@@ -1,4 +1,4 @@
-FROM nightshiftDockerfile
+FROM nightshiftdockerfile
 
 # Not every image needs this, so we'll do it as a one-off in here
 USER root:root
