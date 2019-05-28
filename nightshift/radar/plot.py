@@ -161,137 +161,148 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
             radar = readNEXRAD(each)
 
             # Pull out the identifiers
-            site = radar.metadata['instrument_name']
-            siteLat = radar.latitude['data'][0]
-            siteLon = radar.longitude['data'][0]
+            plotable = False
+            try:
+                # Pull out the identifiers
+                site = radar.metadata['instrument_name']
+                siteLat = radar.latitude['data'][0]
+                siteLon = radar.longitude['data'][0]
 
-            dprod = radar.metadata['original_container']
+                dprod = radar.metadata['original_container']
 
-            # Get the VCP mode (specific radar scan mode); see also:
-            # https://www.weather.gov/jetstream/vcp_max
-            vcpmode = radar.metadata['vcp_pattern']
+                # Get the VCP mode (specific radar scan mode); see also:
+                # https://www.weather.gov/jetstream/vcp_max
+                vcpmode = radar.metadata['vcp_pattern']
+                plotable = True
+            except KeyError as ke:
+                # This usually means a bad file
+                print(str(ke))
+                plotable = False
 
-            # Pull out the time stamp; skip the site name
-            fullts = os.path.basename(each)[4:]
-            tend = dt.strptime(fullts, "%Y%m%d_%H%M%S")
+            if plotable is True:
+                # Pull out the time stamp; skip the site name
+                fullts = os.path.basename(each)[4:]
+                tend = dt.strptime(fullts, "%Y%m%d_%H%M%S")
 
-            # Filter out crud that is probably bugs and stuff,
-            #   good enough for what we're doing
-            print("Debugging...")
-            qcradar = literallyDeBug(radar, vcpmode)
-            print("Debugging complete!")
-            display = RadarMapDisplay(qcradar, )
+                # Filter out crud that is probably bugs and stuff,
+                #   good enough for what we're doing
+                print("Debugging...")
+                qcradar = literallyDeBug(radar, vcpmode)
+                print("Debugging complete!")
+                display = RadarMapDisplay(qcradar, )
 
-            latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(cLat,
-                                                                      cLon)
+                latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(cLat,
+                                                                        cLon)
 
-            # Get the projection info for the plot axes
-            crs = ccrs.LambertConformal(central_latitude=siteLat,
-                                        central_longitude=siteLon)
+                # Get the projection info for the plot axes
+                crs = ccrs.LambertConformal(central_latitude=siteLat,
+                                            central_longitude=siteLon)
 
-            # Get the proper plot extents so we have no whitespace
-            prlon = (crs.x_limits[1] - crs.x_limits[0])
-            prlat = (crs.y_limits[1] - crs.y_limits[0])
-            # Ultimate image width/height
-            paspect = prlon/prlat
+                # Get the proper plot extents so we have no whitespace
+                prlon = (crs.x_limits[1] - crs.x_limits[0])
+                prlat = (crs.y_limits[1] - crs.y_limits[0])
+                # Ultimate image width/height
+                paspect = prlon/prlat
 
-            # !!! WARNING !!!
-            #   I hate this kludge, but it works if you let the aspect stretch
-            #   just a tiny bit. Necessary for the MP4 creation because the
-            #   compression algorithm needs an even number divisor
-            # figsize = (7., np.round(7./paspect, decimals=2))
-            figsize = (7., 7.)
+                # !!! WARNING !!!
+                #   I hate this kludge
+                # figsize = (7., np.round(7./paspect, decimals=2))
+                figsize = (7., 7.)
 
-            print(prlon, prlat, paspect)
-            print(figsize)
+                print(prlon, prlat, paspect)
+                print(figsize)
 
-            # Figure creation
-            fig = plt.figure(figsize=figsize, dpi=100)
+                # Figure creation
+                fig = plt.figure(figsize=figsize, dpi=100)
 
-            # Needed to remove any whitespace/padding around the imshow()
-            plt.subplots_adjust(left=0., right=1., top=1., bottom=0.)
+                # Needed to remove any whitespace/padding around the imshow()
+                plt.subplots_adjust(left=0., right=1., top=1., bottom=0.)
 
-            # Tell matplotlib we're using a map projection so cartopy
-            #   takes over and overloades Axes() with GeoAxes()
-            ax = plt.axes(projection=crs)
+                # Tell matplotlib we're using a map projection so cartopy
+                #   takes over and overloades Axes() with GeoAxes()
+                ax = plt.axes(projection=crs)
 
-            ax.background_patch.set_facecolor('#262629')
+                ax.background_patch.set_facecolor('#262629')
 
-            # Some custom stuff
-            ax = com.maps.add_map_features(ax, counties=counties, roads=roads)
-            ax = com.maps.add_AZObs(ax)
+                # Some custom stuff
+                ax = com.maps.add_map_features(ax,
+                                               counties=counties,
+                                               roads=roads)
+                ax = com.maps.add_AZObs(ax)
 
-            # Clear out the crap on the edges
-            ax.set_xlabel("")
-            ax.set_ylabel("")
-            ax.set_xticklabels([])
-            ax.set_yticklabels([])
+                # Clear out the crap on the edges
+                ax.set_xlabel("")
+                ax.set_ylabel("")
+                ax.set_xticklabels([])
+                ax.set_yticklabels([])
 
-            print("Plotting radar data...")
-            display.plot_ppi_map('reflectivity_masked',
-                                 mask_outside=True,
-                                 min_lon=lonMin, max_lon=lonMax,
-                                 min_lat=latMin, max_lat=latMax,
-                                 projection=crs,
-                                 fig=fig,
-                                 cmap=cmap[0],
-                                 norm=cmap[1],
-                                 lat_0=siteLat,
-                                 lon_0=siteLon,
-                                 embelish=False,
-                                 colorbar_flag=False,
-                                 title_flag=False,
-                                 ticklabs=[],
-                                 ticks=[],
-                                 lat_lines=[],
-                                 lon_lines=[],
-                                 raster=True)
+                print("Plotting radar data...")
+                display.plot_ppi_map('reflectivity_masked',
+                                     mask_outside=True,
+                                     min_lon=lonMin, max_lon=lonMax,
+                                     min_lat=latMin, max_lat=latMax,
+                                     projection=crs,
+                                     fig=fig,
+                                     cmap=cmap[0],
+                                     norm=cmap[1],
+                                     lat_0=siteLat,
+                                     lon_0=siteLon,
+                                     embelish=False,
+                                     colorbar_flag=False,
+                                     title_flag=False,
+                                     ticklabs=[],
+                                     ticks=[],
+                                     lat_lines=[],
+                                     lon_lines=[],
+                                     raster=True)
 
-            display.plot_point(siteLon, siteLat, symbol='^', color='orange')
-            print("Plotting complete! Finishing up...")
+                display.plot_point(siteLon, siteLat,
+                                   symbol='^', color='orange')
+                print("Plotting complete! Finishing up...")
 
-            # plt.colorbar()
+                # plt.colorbar()
 
-            # Add the informational bar at the top, using info directly
-            #   from the original datafiles that we opened at the top
-            line1 = "%s  %s  Filtered Reflectivity" % (site, dprod)
-            line1 = line1.upper()
+                # Add the informational bar at the top, using info directly
+                #   from the original datafiles that we opened at the top
+                line1 = "%s  %s  Filtered Reflectivity" % (site, dprod)
+                line1 = line1.upper()
 
-            # We don't need microseconds shown on this plot
-            tendstr = tend.strftime("%Y-%m-%d  %H:%M:%SZ")
-            line2 = "VCP MODE %03d  %s" % (vcpmode, tendstr)
-            line2 = line2.upper()
+                # We don't need microseconds shown on this plot
+                tendstr = tend.strftime("%Y-%m-%d  %H:%M:%SZ")
+                line2 = "VCP MODE %03d  %s" % (vcpmode, tendstr)
+                line2 = line2.upper()
 
-            # Black background for top label text
-            #   NOTE: Z order is important! Text should be higher than trect
-            trect = mpatches.Rectangle((0.0, 0.955), width=1.0, height=0.045,
-                                       edgecolor=None, facecolor='black',
-                                       fill=True, alpha=1.0, zorder=100,
-                                       transform=ax.transAxes)
-            ax.add_patch(trect)
+                # Black background for top label text
+                #   NOTE: Z order is important! Text should be higher than trect
+                trect = mpatches.Rectangle((0.0, 0.955),
+                                           width=1.0, height=0.045,
+                                           edgecolor=None, facecolor='black',
+                                           fill=True, alpha=1.0, zorder=100,
+                                           transform=ax.transAxes)
+                ax.add_patch(trect)
 
-            # Line 1
-            plt.annotate(line1, (0.5, 0.985), xycoords='axes fraction',
-                         fontfamily='monospace',
-                         horizontalalignment='center',
-                         verticalalignment='center',
-                         color='white', fontweight='bold', zorder=200)
-            # Line 2
-            plt.annotate(line2, (0.5, 0.965), xycoords='axes fraction',
-                         fontfamily='monospace',
-                         horizontalalignment='center',
-                         verticalalignment='center',
-                         color='white', fontweight='bold', zorder=200)
+                # Line 1
+                plt.annotate(line1, (0.5, 0.985), xycoords='axes fraction',
+                             fontfamily='monospace',
+                             horizontalalignment='center',
+                             verticalalignment='center',
+                             color='white', fontweight='bold', zorder=200)
+                # Line 2
+                plt.annotate(line2, (0.5, 0.965), xycoords='axes fraction',
+                             fontfamily='monospace',
+                             horizontalalignment='center',
+                             verticalalignment='center',
+                             color='white', fontweight='bold', zorder=200)
 
-            # Useful for testing getCmap changes
-            # plt.colorbar()
+                # Useful for testing getCmap changes
+                # plt.colorbar()
 
-            print("Saving...")
-            plt.savefig(outpname, dpi=100, facecolor='black', frameon=True)
-            print("Saved as %s." % (outpname))
-            plt.close()
+                print("Saving...")
+                plt.savefig(outpname, dpi=100, facecolor='black', frameon=True)
+                print("Saved as %s." % (outpname))
+                plt.close()
 
-            i += 1
-            print("%d plots complete" % (i))
+                i += 1
+                print("%d plots complete" % (i))
 
     return i
