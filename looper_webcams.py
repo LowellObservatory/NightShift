@@ -33,7 +33,7 @@ def webcamConf(config):
     allcams = OrderedDict()
     oncams = OrderedDict()
 
-    for each in config.sections():
+    for each in config.keys():
         print("Applying '%s' section of conf. file..." % (each))
         wcam = cams.Webcam()
 
@@ -48,7 +48,8 @@ def webcamConf(config):
         if wcam.enabled is True:
             oncams.update({wcam.name: wcam})
 
-    print()
+    # We need a -1 on allcams because ConfigParser adds a DEFAULT section
+    print("%d endpoints defined, %d enabled" % (len(allcams)-1, len(oncams)))
 
     return allcams, oncams
 
@@ -67,8 +68,9 @@ def main():
     utils.logs.setup_logging(logName=lfile, nLogs=5)
 
     # Read the webcam config file and parse it accordingly.
-    #   Will return an OrderedDict of enabled webcams.
-    basecamConfig = comutils.parseConfFile('./config/webcams.conf')
+    #   Will return an OrderedDict of enabled webcams IF enableCheck is True
+    basecamConfig = comutils.parseConfFile('./config/webcams.conf',
+                                           enableCheck=False)
     allcams, oncams = webcamConf(basecamConfig)
 
     # Before we start, check the ALL the image output directories.
