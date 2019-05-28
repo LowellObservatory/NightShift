@@ -209,7 +209,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
     # i is the number-of-images processed counter
     i = 0
     for each in flist:
-        outpname = "%s/%s.png" % (outloc, os.path.basename(each))
+        # Remember that the [:-3] on the basename trims off the '.nc' extension
+        outpname = "%s/%s.png" % (outloc, os.path.basename(each)[:-3])
 
         # Logic to skip stuff already completed, or just redo everything
         if forceRegen is True:

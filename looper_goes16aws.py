@@ -108,8 +108,10 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
 
     # Filename to copy the last/latest image into for easier web integration
     #   Ok to just hardcopy these since they'll be staticly named
-    latestname = '%s/g16aws_latest.png' % (lout)
     vid1 = "%s/g16aws_latest.gif" % (lout)
+
+    # What the base/first part of the output filename will be
+    staticname = 'goes16_'
 
     # Need this for parsing the filename into a dt obj
     dtfmt = "%Y%j%H%M%S%f"
@@ -175,13 +177,13 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
         fudge = 1.
         # BUT only do anything if we actually made a new file!
         if nplots > 0:
-            ofiles = dtfmt + ".png"
+            ofiles = dtfmt + "_C13.png"
             cpng = utils.clearOldFiles(pout, "*.png", when,
-                                       maxage=keephours+fudge, dtfmt=dtfmt)
+                                       maxage=keephours+fudge, dtfmt=ofiles)
 
-            ofiles = dtfmt + ".nc"
-            craw = utils.clearOldFiles(dout, "*.nc", when,
-                                       maxage=keephours+fudge, dtfmt=dtfmt)
+            ofiles = dtfmt + "_C13.nc"
+            craw = utils.clearOldFiles(pout, "*.png", when,
+                                       maxage=keephours+fudge, dtfmt=ofiles)
 
             print("%d, %d raw and png files remain within %.1f + %.1f hours" %
                   (len(cpng), len(craw), keephours, fudge))
@@ -190,33 +192,12 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
             # Since they're good filenames we can just sort and take the last
             #   if there are actually any current ones left of course
             nstaticfiles = 48
-            if cpng != []:
-                if len(cpng) < nstaticfiles:
-                    lindex = len(cpng)
-                else:
-                    lindex = nstaticfiles
 
-                # It's easier to do this via reverse list indicies
-                icount = 0
-                for findex in range(-1*lindex, 0, 1):
-                    try:
-                        lname = "%s/goes_latest_%03d.png" % (lout, icount)
-                        icount += 1
-                        copyfile(cpng[findex], lname)
-                    except Exception as err:
-                        # TODO: Figure out the proper/specific exception
-                        print(str(err))
-                        print("WHOOPSIE! COPY FAILED")
-
-                # Put the very last file in the last file slot
-                latest = cpng[-1]
-                try:
-                    copyfile(latest, latestname)
-                    print("Latest file copy done!")
-                except Exception as err:
-                    # TODO: Figure out the proper/specific exception to catch
-                    print(str(err))
-                    print("WHOOPSIE! COPY FAILED")
+            # Move our files to the set of static filenames. This will
+            #   check (cpng) to see if there are actually any files that
+            #   are new, and if so it'll shuffle the files into the correct
+            #   order of static filenames.
+            utils.copyStaticFilenames(nstaticfiles, lout, staticname, cpng)
 
             # Make the movies!
             print("Making movies...")
