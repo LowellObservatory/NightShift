@@ -22,7 +22,7 @@ import numpy as np
 
 from bokeh.plotting import ColumnDataSource
 
-from . import modulePlots as bplot
+from ..plotting import modulePlots as bplot
 
 
 def dataGatherer(moduleKey, mods, qdata):

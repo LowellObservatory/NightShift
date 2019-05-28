@@ -20,7 +20,7 @@ from collections import OrderedDict
 
 from bokeh.models import DataRange1d
 
-from . import modulePlots as bplot
+from ..plotting import modulePlots as bplot
 
 
 def dataGatherer(m, qdata, timeFilter=None, fillNull=True, debug=True):

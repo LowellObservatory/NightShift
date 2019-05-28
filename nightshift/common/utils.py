@@ -19,11 +19,13 @@ import os
 import glob
 from shutil import copyfile
 import configparser as conf
+from collections import OrderedDict
 from datetime import datetime as dt
 
 
-def parseConfFile(filename):
+def parseConfFile(filename, enableCheck=True):
     """
+    TODO: Check to see if this is duplicated in ligmos
     """
     try:
         config = conf.SafeConfigParser()
@@ -39,12 +41,36 @@ def parseConfFile(filename):
     print("Found the following sections in the configuration file:")
     print("%s\n" % tsections)
 
-    return config
+    if enableCheck is True:
+        enconfig = checkEnabled(config)
+    else:
+        enconfig = dict(config)
+
+    return enconfig
+
+
+def checkEnabled(conf):
+    """
+    TODO: Check to see if this is duplicated in ligmos
+    TODO: Check to see if this can be combined with assignConf
+    """
+    enset = OrderedDict()
+    for sect in conf.sections():
+        en = False
+        for key in conf[sect].keys():
+            if key.lower() == 'enabled':
+                en = conf[sect].getboolean(key)
+                if en is True:
+                    enset.update({sect: conf[sect]})
+
+    return enset
 
 
 def assignConf(classInstance, conf):
     """
     Accepts a ConfigParser instance and sets the parameters found within it
+    TODO: Check to see if this is duplicated in ligmos
+    TODO: Check to see if this can be combined with checkEnabled
     """
     # Assign the conf. file section title as the webcam name
     classInstance.name = conf.name

@@ -16,6 +16,8 @@ from __future__ import division, print_function, absolute_import
 from datetime import datetime as dt
 from collections import OrderedDict
 
+import pkg_resources as pkgr
+
 from bokeh.themes import Theme
 from bokeh.util import logconfig
 from bokeh.plotting import curdoc
@@ -25,12 +27,15 @@ from bokeh.application.handlers.function import FunctionHandler
 
 from tornado.ioloop import PeriodicCallback
 
-import dctplots.confHerder as ch
-import dctplots.dbQueries as dbq
-import dctplots.colorWheelies as cwheels
+import nightshift.bokeh.confHerder as ch
+import nightshift.bokeh.dbQueries as dbq
+import nightshift.bokeh.ephemera as ephemera
 
-from dctplots import facsumLPI, facsumTCS
-from dctplots import ephemera, dctWeather, dctWind, instrumentTelem
+import nightshift.bokeh.plotting.colorWheelies as cwheels
+
+from nightshift.bokeh.dct import facsumLPI, facsumTCS
+from nightshift.bokeh.dct import dctWeather, dctWind
+from nightshift.bokeh.dct import instrumentTelem
 
 
 # Make sure all the endpoints work from the same base document.
@@ -156,7 +161,11 @@ if __name__ == "__main__":
     # Can spin these off to configParser things later
     qconff = './config/dbqueries.conf'
     mconff = './config/modules.conf'
-    themefile = "./config/bokeh_dark_theme.yml"
+
+    # Grab the default theme in the least painful way possible
+    #   We have to do it here because this is where curdoc lives/dies
+    themefile = pkgr.resource_filename('nightshift',
+                                       "resources/bokeh_dark_theme.yml")
 
     # Parse the configuration files
     #   'mods' is a list of ch.moduleConfig objects.
@@ -176,7 +185,7 @@ if __name__ == "__main__":
     print("Sending the output to the file")
     logconfig.basicConfig(level='DEBUG',
                           format='%(asctime)s %(levelname)-8s %(message)s',
-                          filename='./logs/bokehmcbokehface.log')
+                          filename='./outputs/logs/bokehmcbokehface.log')
 
     # Now pack it all into a nice class that can be added to the
     #   main doc to be inherited by each plot that we make

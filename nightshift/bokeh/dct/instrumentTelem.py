@@ -18,7 +18,7 @@ from __future__ import division, print_function, absolute_import
 import datetime as dt
 from collections import OrderedDict
 
-from . import modulePlots as bplot
+from ..plotting import modulePlots as bplot
 
 
 def dataGatherer(m, qdata, timeFilter=None, fillNull=True, debug=True):

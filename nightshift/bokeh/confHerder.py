@@ -13,8 +13,9 @@
 
 from __future__ import division, print_function, absolute_import
 
-import configparser as conf
 from collections import OrderedDict
+
+from ..common import utils as comutil
 
 
 class moduleConfig():
@@ -72,6 +73,8 @@ def assignConf(obj, conf):
     Assumes that ALL keys in the class are present in the configuration; if
     they aren't, then they're set to ```None``` and caught/announced in the
     ```KeyError``` exception below.
+
+    TODO: Move this over into common.utils and integrate elsewhere.
     """
     for key in obj.__dict__:
         try:
@@ -97,46 +100,6 @@ def assignConf(obj, conf):
             setattr(obj, key, None)
 
     return obj
-
-
-def parseConfFile(filename, enableCheck=True):
-    """
-    """
-    try:
-        config = conf.SafeConfigParser()
-        config.read_file(open(filename, 'r'))
-    except IOError as err:
-        config = None
-        print(str(err))
-        return config
-
-    sections = config.sections()
-    tsections = ' '.join(sections)
-
-    print("Found the following sections in the configuration file:")
-    print("%s\n" % tsections)
-
-    if enableCheck is True:
-        enconfig = checkEnabled(config)
-    else:
-        enconfig = dict(config)
-
-    return enconfig
-
-
-def checkEnabled(conf):
-    """
-    """
-    enset = OrderedDict()
-    for sect in conf.sections():
-        en = False
-        for key in conf[sect].keys():
-            if key.lower() == 'enabled':
-                en = conf[sect].getboolean(key)
-                if en is True:
-                    enset.update({sect: conf[sect]})
-
-    return enset
 
 
 def alignDBConfig(queries):
@@ -172,7 +135,8 @@ def groupConfFiles(queries, modules):
     # loopableSet = []
     allQueries = []
     for sect in modules.keys():
-        # Parse the conf file section
+        # Parse the conf file section.
+        #   USE THE assignConf FUNCTION IN HERE
         mod = assignConf(moduleConfig(), modules[sect])
 
         # Assign the query objects to the module class now
@@ -204,13 +168,13 @@ def parser(qconff, mconff):
     """
     """
     # Parse the text file
-    qs = parseConfFile(qconff, enableCheck=False)
+    qs = comutil.parseConfFile(qconff, enableCheck=False)
 
     # Associate the database queries with the proper database connection class
     qs = alignDBConfig(qs)
 
     # Parse the text file and check if any sections are disabled
-    ms = parseConfFile(mconff, enableCheck=True)
+    ms = comutil.parseConfFile(mconff, enableCheck=True)
 
     # Now combine the modules and queries into stuff we can itterate over
     modules, queries = groupConfFiles(qs, ms)
