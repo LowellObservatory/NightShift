@@ -1,16 +1,36 @@
 [CamName]
+type = webcam
 url = http://0.0.0.0/image/jpeg.cgi
 user = admin
 pasw = admin
-floc = ./local/output/image/camimgname.jpg
+fmas = None
 auth = digest
+odir = ./local/output/image/
+oname = camname.jpg
 enabled = True
 
 
 [OtherCamName]
-url = http://0.0.0.0/cgi-bin/video.jpg
+type = webcam
+url = http://0.0.0.0/image/jpeg.cgi
 user = admin
 pasw = admin
-floc = ./local/output/image/othercamimgname.jpg
+fmas = None
 auth = basic
+odir = ./local/output/image/
+oname = othercamname.jpg
+enabled = True
+
+
+[ApacheNGINXOpenListing]
+type = opendir
+url = http://0.0.0.0/files/
+user = None
+pasw = None
+# Note this is python RE syntax, not sed style!
+#   Would match "as20190528_121133.jpg"
+fmas = as\d{8}_\d{6}\.jpg
+auth = None
+odir = ./outputs/images/dct/
+oname = allsky.jpg
 enabled = True
