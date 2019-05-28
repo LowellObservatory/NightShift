@@ -140,7 +140,7 @@ if __name__ == "__main__":
     # Set up logging (using ligmos' quick 'n easy wrapper)
     logs.setup_logging(logName=logname, nLogs=30)
 
-    creds = utils.parseConfFile(awsconf)
+    creds = utils.parseConfFile(awsconf, enableCheck=False)
 
     main(outdir, creds, forceDown=forceDownloads, forceRegen=forceRegenPlot)
     print("Exiting!")
