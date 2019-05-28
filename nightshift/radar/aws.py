@@ -25,27 +25,9 @@ import numpy as np
 from .. import common as com
 
 
-def NEXRADAWSgrab(aws_keyid, aws_secretkey, now, outdir,
-                  timedelta=6, forceDown=False):
+def genQueries(timedelta, now, station):
     """
-    AWS IAM user key
-    AWS IAM user secret key
-    Time query is relative to (usually datetime.datetime.utcnow)
-    Hours to query back from above
     """
-    # AWS GOES bucket location/name
-    awsbucket = 'noaa-nexrad-level2'
-    awszone = 'us-east-1'
-
-    # Station ID that you want to download
-    station = "KFSX"
-
-    # Check our output directory for files already downloaded
-    donelist = com.utils.checkOutDir(outdir)
-
-    # Sample key:
-    # 2019/05/17/KFSX/KFSX20190517_000556_V06
-
     # Construct the key prefixes between the oldest and the newest
     querybins = []
     minmaxhour = []
@@ -79,18 +61,34 @@ def NEXRADAWSgrab(aws_keyid, aws_secretkey, now, outdir,
 
     minmaxhour.append(qhour)
 
-    s3 = boto3.resource('s3', awszone,
-                        aws_access_key_id=aws_keyid,
-                        aws_secret_access_key=aws_secretkey)
+    return querybins, minmaxhour
 
-    try:
-        buck = s3.Bucket(awsbucket)
-    except botocore.exceptions.ClientError as e:
-        # NOTE: Is this the correct exception?  No clue.
-        if e.response['Error']['Code'] == "404":
-            print("The object does not exist.")
-        else:
-            raise
+
+def NEXRADAWSgrab(aws_keyid, aws_secretkey, now, outdir,
+                  timedelta=6, forceDown=False):
+    """
+    AWS IAM user key
+    AWS IAM user secret key
+    Time query is relative to (usually datetime.datetime.utcnow)
+    Hours to query back from above
+    """
+    # AWS GOES bucket location/name
+    awsbucket = 'noaa-nexrad-level2'
+    awszone = 'us-east-1'
+
+    # Station ID that you want to download
+    station = "KFSX"
+
+    # Check our output directory for files already downloaded
+    donelist = com.utils.checkOutDir(outdir)
+
+    # Sample key:
+    # 2019/05/17/KFSX/KFSX20190517_000556_V06
+
+    querybins, minmaxhour = genQueries(timedelta, now, station)
+
+    # Establish the connection to the S3 bucket
+    buck = com.aws.connectS3(awsbucket, awszone, aws_keyid, aws_secretkey)
 
     matches = []
     # Bit of a hack; for the first querybin, there's a hour limit that
@@ -161,19 +159,13 @@ def NEXRADAWSgrab(aws_keyid, aws_secretkey, now, outdir,
                     boname = basename(oname)
                     if boname not in donelist:
                         matches.append(objs)
-                        try:
-                            buck.download_file(objs.key, oname)
-                            print("Downloaded: %s" % (oname))
-                        except botocore.exceptions.ReadTimeoutError:
-                            print("DOWNLOAD FAILURE! ReadTimeoutError")
-                        except ConnectionError:
-                            print("DOWNLOAD FAILURE!")
-                            print("ConnectionError or subclass of it.")
+                        # Actually attempt the download
+                        com.aws.downloadFromS3(buck, objs, oname)
                     else:
                         print(oname, "already downloaded!")
                         if forceDown is True:
                             print("Download forced.")
-                            buck.download_file(objs.key, oname)
+                            com.aws.downloadFromS3(buck, objs, oname)
 
         except botocore.exceptions.ClientError as e:
             if e.response['Error']['Code'] == "404":
