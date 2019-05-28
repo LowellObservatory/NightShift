@@ -1,4 +1,4 @@
-FROM nightshiftdockerfile
+FROM nightshiftbase
 
 # Default command to issue when starting this image in a container
 USER lig
