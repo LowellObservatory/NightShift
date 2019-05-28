@@ -6,7 +6,7 @@ USER lig:lig
 WORKDIR /home/lig/Codes/
 COPY --chown=lig:lig . ./NightShift/
 WORKDIR /home/lig/Codes/NightShift
-RUN pip install -e
+RUN pip install -e .
 
 WORKDIR /home/lig/Codes/NightShift/outputs
 RUN mkdir logs images goes radar webcams
