@@ -201,7 +201,8 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
 
             # Make the movies!
             print("Making movies...")
-            movingPictures(cpng, vid1, when, videoage=vidhours, dtfmt=dtfmt)
+            ofiles = dtfmt + "_C13.png"
+            movingPictures(cpng, vid1, when, videoage=vidhours, dtfmt=ofiles)
 
             # 20181210 RTH: Disabling the MP4 output for now because I hates it
             # movingPictures(cpng, vid2, when, videoage=vidhours, dtfmt=dtfmt)
