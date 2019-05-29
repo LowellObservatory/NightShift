@@ -194,7 +194,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 display = RadarMapDisplay(qcradar, )
 
                 latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(cLat,
-                                                                        cLon)
+                                                                          cLon)
 
                 # Get the projection info for the plot axes
                 crs = ccrs.LambertConformal(central_latitude=siteLat,

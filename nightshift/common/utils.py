@@ -22,6 +22,11 @@ import configparser as conf
 from collections import OrderedDict
 from datetime import datetime as dt
 
+import pkg_resources as pkgr
+
+import numpy as np
+from PIL import Image
+
 
 def parseConfFile(filename, enableCheck=True):
     """
@@ -126,6 +131,62 @@ def clearOldFiles(inloc, fmask, now, maxage=24., dtfmt="%Y%j%H%M%S%f"):
             remaining.append(each)
 
     return remaining
+
+
+def shift_hue(img, color=None):
+    """
+    https://stackoverflow.com/questions/7274221/changing-image-hue-with-python-pil
+    https://stackoverflow.com/users/190597/unutbu
+    """
+    # Save this for later
+    origalpha = img.getchannel("A")
+
+    # Easier to work in HSV space!
+    hsv = np.array(img.convert("HSV"))
+
+    if color is None:
+        # Apply a random coloring to it to give it some ... flair
+        #   This is done is HSV space, but PIL still works in 0-255.
+        color = np.random.random_integers(0, high=255)
+
+    print("Changing hue to: %d" % (color))
+
+    # Change the color
+    hsv[..., 0] = color
+
+    # Make the color saturated
+    hsv[..., 1] = 255
+
+    # Set the brightness midrange
+    hsv[..., 2] = 127
+
+    # Convert back to RGB space, and slap our alpha channel back on
+    rgba = Image.fromarray(hsv).convert("RGBA")
+    rgba.putalpha(origalpha)
+
+    return rgba
+
+
+def applyErrorLogo(img, outname, failimg=None, color=None):
+    """
+
+    """
+    if failimg is None:
+        failimgloc = "resources/images/dontpanic.png"
+        failimg = pkgr.resource_filename('nightshift', failimgloc)
+
+    # Read in the images
+    oimg = Image.open(img).convert("RGBA")
+    fimg = Image.open(failimg).convert("RGBA")
+
+    cimg = shift_hue(fimg, color=color)
+
+    # Combine the two; this composites the second over the first
+    wimg = np.array(oimg) + np.array(cimg)
+
+    wimg = Image.fromarray(wimg)
+    cimg.save(outname)
+    wimg.close()
 
 
 def copyStaticFilenames(nstaticfiles, lout, staticname, cpng):

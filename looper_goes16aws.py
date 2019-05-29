@@ -16,7 +16,6 @@ from __future__ import division, print_function, absolute_import
 import os
 import time
 import subprocess as subp
-from shutil import copyfile
 from datetime import datetime as dt
 
 import imageio
@@ -112,6 +111,7 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
 
     # What the base/first part of the output filename will be
     staticname = 'goes16'
+    nstaticfiles = 48
 
     # Need this for parsing the filename into a dt obj
     dtfmt = "%Y%j%H%M%S%f"
@@ -189,10 +189,6 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
                   (len(cpng), len(craw), keephours, fudge))
 
             print("Copying the latest/last files to an accessible spot...")
-            # Since they're good filenames we can just sort and take the last
-            #   if there are actually any current ones left of course
-            nstaticfiles = 48
-
             # Move our files to the set of static filenames. This will
             #   check (cpng) to see if there are actually any files that
             #   are new, and if so it'll shuffle the files into the correct
@@ -207,7 +203,15 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
             # 20181210 RTH: Disabling the MP4 output for now because I hates it
             # movingPictures(cpng, vid2, when, videoage=vidhours, dtfmt=dtfmt)
         else:
-            print("No new files downloaded so skipping all actions.")
+            print("No new files downloaded, so checking for OLD data...")
+
+            # Get the last nstaticfiles from our output directory
+            #   and check to see how old they really are.  If they're old,
+            #   slap a warning overlay overtop of them so it's more obvious
+            #   that there might be a data/input delay or problem.
+
+            # utils.copyStaticFilenames(nstaticfiles, lout, staticname, cpng)
+
 
         print("Sleeping for %03d seconds..." % (sleep))
         time.sleep(sleep)
