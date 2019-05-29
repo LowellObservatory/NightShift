@@ -119,7 +119,7 @@ def dataGatherer(moduleKey, mods, qdata):
 
     # Finally done! Now put it all into a list so it can be passed
     #   back a little easier and taken from there
-    tableDat = [sunrise, sunset,
+    tableDat = [sunset, sunrise,
                 targname, lst, cHA,
                 cRA, cDec, cFrame,
                 dRA, dDec, dFrame,
