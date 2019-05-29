@@ -111,7 +111,7 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
     vid1 = "%s/g16aws_latest.gif" % (lout)
 
     # What the base/first part of the output filename will be
-    staticname = 'goes16_'
+    staticname = 'goes16'
 
     # Need this for parsing the filename into a dt obj
     dtfmt = "%Y%j%H%M%S%f"
