@@ -182,7 +182,7 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
                                        maxage=keephours+fudge, dtfmt=ofiles)
 
             ofiles = dtfmt + "_C13.nc"
-            craw = utils.clearOldFiles(pout, "*.nc", when,
+            craw = utils.clearOldFiles(dout, "*.nc", when,
                                        maxage=keephours+fudge, dtfmt=ofiles)
 
             print("%d, %d raw and png files remain within %.1f + %.1f hours" %
