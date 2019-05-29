@@ -103,7 +103,9 @@ def literallyDeBug(radar, vcpmode):
     refLow = np.less(refl_grid, refCutVal)
 
     # Differential reflectivity greater than some cutoff point
-    #   Note that this is doing abs() first, so it's filtering out both ends
+    #   Note that this is doing abs() first, so it's filtering out both ends.
+    #   This could be a natural point of improvement to filter both ends
+    #   explicitly rather than trying to combine both in one shot.
     #   value originally was 2.3
     zdrCut = np.greater(np.abs(zdr_grid), 2.0)
 

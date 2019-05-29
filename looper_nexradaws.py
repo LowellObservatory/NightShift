@@ -142,5 +142,6 @@ if __name__ == "__main__":
 
     creds = utils.parseConfFile(awsconf, enableCheck=False)
 
-    main(outdir, creds, forceDown=forceDownloads, forceRegen=forceRegenPlot)
+    main(outdir, creds, sleep=90.,
+         forceDown=forceDownloads, forceRegen=forceRegenPlot)
     print("Exiting!")
