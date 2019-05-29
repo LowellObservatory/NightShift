@@ -121,8 +121,9 @@ def dataGatherer(moduleKey, mods, qdata):
     #   back a little easier and taken from there
     tableDat = [sunset, sunrise,
                 targname, lst, cHA,
-                cRA, cDec, cFrame,
-                dRA, dDec, dFrame,
+                cRA, dRA,
+                cDec, dDec,
+                cFrame, dFrame,
                 airmass, guidemode,
                 sundist, moondist,
                 sunalt, moonalt, moonphase]
