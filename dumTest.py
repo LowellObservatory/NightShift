@@ -1,4 +1,4 @@
-from nightshift.common import utils
+from nightshift.common import images
 
-utils.applyErrorLogo("./outputs/goes/pngs/20191430309130_C13.nc.png",
-                     "./testing.png")
+images.applyErrorLogo("./outputs/goes/pngs/20191430309130_C13.nc.png",
+                      "./testing.png")

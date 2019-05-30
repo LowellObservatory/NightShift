@@ -22,11 +22,6 @@ import configparser as conf
 from collections import OrderedDict
 from datetime import datetime as dt
 
-import pkg_resources as pkgr
-
-import numpy as np
-from PIL import Image
-
 
 def parseConfFile(filename, enableCheck=True):
     """
@@ -109,97 +104,62 @@ def getFilenameAgeDiff(fname, now, dtfmt="%Y%j%H%M%S%f"):
     return diff
 
 
-def clearOldFiles(inloc, fmask, now, maxage=24., dtfmt="%Y%j%H%M%S%f"):
+def deleteOldFiles(fdict):
+    """
+    fdict should be a dictionary whose key is the filename and the
+    value is that filename's determined age (in seconds)
+    """
+    for key in fdict:
+        print("Deleting %s since it's too old (%.3f hr)" %
+              (key, fdict[key]/60./60.))
+        try:
+            os.remove(key)
+        except OSError as err:
+            # At least see what the issue was
+            print(str(err))
+
+
+def findOldFiles(inloc, fmask, now, maxage=24., dtfmt="%Y%j%H%M%S%f"):
     """
     'maxage' is in hours
+
+    Returns two dictionaries, one for the current (young) files and one
+    for the out-of-date (old) files. Both dicts are set up the same,
+    with the keys being the filenames and their values their determined age.
     """
     maxage *= 60. * 60.
     flist = sorted(glob.glob(inloc + fmask))
 
-    remaining = []
+    goldenoldies = {}
+    youngsters = {}
     for each in flist:
         diff = getFilenameAgeDiff(each, now, dtfmt=dtfmt)
         if diff > maxage:
-            print("Deleting %s since it's too old (%.3f hr)" %
-                  (each, diff/60./60.))
-            try:
-                os.remove(each)
-            except OSError as err:
-                # At least see what the issue was
-                print(str(err))
+            goldenoldies.update({each: diff})
         else:
-            remaining.append(each)
+            youngsters.update({each: diff})
 
-    return remaining
-
-
-def shift_hue(img, color=None):
-    """
-    https://stackoverflow.com/questions/7274221/changing-image-hue-with-python-pil
-    https://stackoverflow.com/users/190597/unutbu
-    """
-    # Save this for later
-    origalpha = img.getchannel("A")
-
-    # Easier to work in HSV space!
-    hsv = np.array(img.convert("HSV"))
-
-    if color is None:
-        # Apply a random coloring to it to give it some ... flair
-        #   This is done is HSV space, but PIL still works in 0-255.
-        color = np.random.random_integers(0, high=255)
-
-    print("Changing hue to: %d" % (color))
-
-    # Change the color
-    hsv[..., 0] = color
-
-    # Make the color mostly saturated
-    hsv[..., 1] = 200
-
-    # Set the brightness to mostly bright
-    hsv[..., 2] = 200
-
-    # Convert back to RGB space, and slap our alpha channel back on
-    rgba = Image.fromarray(hsv, mode='HSV').convert("RGBA")
-    rgba.putalpha(origalpha)
-
-    return rgba
+    return youngsters, goldenoldies
 
 
-def applyErrorLogo(img, outname, failimg=None, color=None):
-    """
-
-    """
-    if failimg is None:
-        failimgloc = "resources/images/dontpanic.png"
-        failimg = pkgr.resource_filename('nightshift', failimgloc)
-
-    # Read in the images
-    oimg = Image.open(img).convert("RGBA")
-    fimg = Image.open(failimg).convert("RGBA")
-
-    cimg = shift_hue(fimg, color=color)
-
-    # Combine the two; this composites the second over the first
-    wimg = Image.alpha_composite(oimg, cimg)
-    wimg.save(outname)
-    wimg.close()
-
-
-def copyStaticFilenames(nstaticfiles, lout, staticname, cpng):
+def copyStaticFilenames(cpng, lout, staticname, nstaticfiles):
     """
     """
     latestname = '%s/%s_latest.png' % (lout, staticname)
 
+    # Since we gave it a dict.keys() we just put it into a list to make
+    #   indexing below a little easier.
+    cpng = list(cpng)
+
+    # Make sure we don't try to operate on an empty list
     if cpng != []:
         if len(cpng) < nstaticfiles:
             lindex = len(cpng)
         else:
             lindex = nstaticfiles
 
-        # It's easier to do this via reverse list indicies
         icount = 0
+        # It's easier to do this in reverse
         for findex in range(-1*lindex, 0, 1):
             try:
                 lname = "%s/%s_%03d.png" % (lout, staticname, icount)

@@ -12,17 +12,14 @@ from __future__ import division, print_function, absolute_import
 
 import re
 import time
-from datetime import datetime as dt
-
-import pkg_resources as pkgr
 
 from bs4 import BeautifulSoup
-
-from PIL import Image, ImageDraw, ImageFont
 
 from requests import get as httpget
 from requests.exceptions import ConnectionError as RCE
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
+
+from ..common import images
 
 
 class Webcam():
@@ -59,8 +56,8 @@ def grabSet(camset, failimg=None, interval=0.5):
             #   raise RCE directly when/if needed
             print(str(err))
 
-            tagErrorImage(outfile, failimg=failimg,
-                          camname=currentCamera.name)
+            images.tagErrorImage(outfile, failimg=failimg,
+                                 camname=currentCamera.name)
 
         time.sleep(interval)
 
@@ -92,47 +89,6 @@ def camGrabbie(cam, outfile):
             # This will be caught elsewhere
             print("Bad grab :(")
             raise RCE
-
-
-def tagErrorImage(location, failimg=None, camname=None):
-    """
-    Given the failure image filename, add a timestamp to it
-    starting at the specified pixel location (lower left corner of text).
-
-    Leaving this hardcoded for now since it is something that's probably
-    deployment dependent, but it could be abstracted with work/effort.
-
-    Will save the resulting image to location when it's done.
-    """
-    # This is in the package resources directory specified in the package!
-    fontfile = "resources/fonts/GlacialIndifference-Bold.otf"
-
-    ff = pkgr.resource_filename('nightshift', fontfile)
-    font = ImageFont.FreeTypeFont(ff, size=24, encoding='unic')
-
-    timestamp = dt.utcnow()
-    timestring = timestamp.strftime("%Y-%m-%d %H:%M:%S UTC")
-
-    if failimg is None:
-        failimgloc = "resources/images/percy_txt.jpg"
-        failimg = pkgr.resource_filename('nightshift', failimgloc)
-
-    img = Image.open(failimg)
-    dtxt = ImageDraw.Draw(img)
-
-    # We don't actually need the height since I eyeballed it
-    tw, _ = font.getsize(timestring)
-    ntw = 170 - tw//2
-
-    dtxt.text((ntw, 200), timestring, fill=(255, 76, 76), font=font)
-
-    if camname is not None:
-        # Same as above
-        tw, _ = font.getsize(camname)
-        ntw = 170 - tw//2
-        dtxt.text((ntw, 85), camname, fill=(255, 76, 76), font=font)
-
-    img.save(location)
 
 
 def simpleImageCopy(url, location):
