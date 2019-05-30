@@ -15,67 +15,12 @@ from __future__ import division, print_function, absolute_import
 
 import os
 import time
-import subprocess as subp
 from datetime import datetime as dt
 
-import imageio
-import imageio.core.util
 from ligmos.utils import logs
 
 from nightshift.goes import plot, aws
-from nightshift.common import maps, utils
-
-
-def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
-    """
-    processing is determined by the file extension; it only knows about
-    'gif' and 'mp4' at present!
-
-    'videoage' is in hours
-    """
-    maxage = videoage * 60. * 60.
-    images = []
-    fnames = []
-    for filename in inlist:
-        diff = utils.getFilenameAgeDiff(filename, now, dtfmt=dtfmt)
-        if diff < maxage:
-            images.append(imageio.imread(filename))
-            fnames.append(filename)
-
-    print("%d files found within %d h of now for the moving pictures" %
-          (len(images), videoage))
-
-    # Buffer the last few frames to make it not loop in an annoying way
-    images += [images[-1]]*13
-    fnames += [fnames[-1]]*13
-
-    if outname.lower().endswith("mp4"):
-        print("Starting MP4 creation...")
-        try:
-            # NEED this because imageio is a bit silly at the moment, and
-            #   macro_block_size will destroy our logger.  Once
-            #   https://github.com/imageio/imageio/issues/376 is closed
-            #   this can be revisited.
-            # As of 20181128, imageio FFMPEG is pretty useless for this.
-            # imageio.mimwrite(outname, images, quality=7)
-
-            # 0.1 sec frame time ==
-            vfopts = "fps=10,format=yuv420p,pad=ceil(iw/2)*2:ceil(ih/2)*2"
-            ffmpegcall = ["ffmpeg", "-y", "-pattern_type", "glob",
-                          "-i", os.path.dirname(fnames[0]) + "/*.png",
-                          "-c:v", "libx264",
-                          "-vf", vfopts,
-                          outname]
-            subp.check_call(ffmpegcall)
-            print("MP4 saved as %s" % (outname))
-        except subp.CalledProcessError as err:
-            print("FFMPEG failed!")
-            print(err.output)
-    elif outname.lower().endswith("gif"):
-        print("Starting GIF creation...")
-        imageio.mimwrite(outname, images, loop=0, duration=0.100,
-                         palettesize=256)
-        print("GIF saved as %s" % (outname))
+from nightshift.common import maps, utils, images
 
 
 def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
@@ -175,43 +120,37 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
         #   AWS/data query has a resolution of 1 hour, so there can sometimes
         #   be fighting of downloading/deleting/redownloading/deleting ...
         fudge = 1.
-        # BUT only do anything if we actually made a new file!
-        if nplots > 0:
-            ofiles = dtfmt + "_C13.png"
-            cpng = utils.clearOldFiles(pout, "*.png", when,
-                                       maxage=keephours+fudge, dtfmt=ofiles)
 
-            ofiles = dtfmt + "_C13.nc"
-            craw = utils.clearOldFiles(dout, "*.nc", when,
-                                       maxage=keephours+fudge, dtfmt=ofiles)
+        # Now we look for old files.  Looking is ok!  We won't actually act
+        #   unless there's a valid reason to do so.
+        ofiles = dtfmt + "_C13.png"
+        curpngs, oldpngs = utils.findOldFiles(pout, "*.png", when,
+                                              maxage=keephours+fudge,
+                                              dtfmt=ofiles)
+
+        ofiles = dtfmt + "_C13.nc"
+        curraws, oldraws = utils.findOldFiles(dout, "*.nc", when,
+                                              maxage=keephours+fudge,
+                                              dtfmt=ofiles)
+
+        if nplots > 0:
+            # Remove the dead/old ones
+            #   BUT notice that this is only if we made new files!
+            utils.deleteOldFiles(oldpngs)
+            utils.deleteOldFiles(oldraws)
 
             print("%d, %d raw and png files remain within %.1f + %.1f hours" %
-                  (len(cpng), len(craw), keephours, fudge))
+                  (len(curraws), len(curpngs), keephours, fudge))
 
-            print("Copying the latest/last files to an accessible spot...")
-            # Move our files to the set of static filenames. This will
-            #   check (cpng) to see if there are actually any files that
-            #   are new, and if so it'll shuffle the files into the correct
-            #   order of static filenames.
-            utils.copyStaticFilenames(nstaticfiles, lout, staticname, cpng)
-
-            # Make the movies!
-            print("Making movies...")
-            ofiles = dtfmt + "_C13.png"
-            movingPictures(cpng, vid1, when, videoage=vidhours, dtfmt=ofiles)
-
-            # 20181210 RTH: Disabling the MP4 output for now because I hates it
-            # movingPictures(cpng, vid2, when, videoage=vidhours, dtfmt=dtfmt)
-        else:
-            print("No new files downloaded, so checking for OLD data...")
-
-            # Get the last nstaticfiles from our output directory
-            #   and check to see how old they really are.  If they're old,
-            #   slap a warning overlay overtop of them so it's more obvious
-            #   that there might be a data/input delay or problem.
-
-            # utils.copyStaticFilenames(nstaticfiles, lout, staticname, cpng)
-
+        print("Copying the latest/last files to an accessible spot...")
+        # Move our files to the set of static filenames. This will
+        #   check (cpng) to see if there are actually any files that
+        #   are new, and if so it'll shuffle the files into the correct
+        #   order of static filenames.
+        # This will stamp files that are > 4 hours old with a warning
+        utils.copyStaticFilenames(curpngs, lout,
+                                  staticname, nstaticfiles,
+                                  errorAge=4., errorStamp=True)
 
         print("Sleeping for %03d seconds..." % (sleep))
         time.sleep(sleep)
@@ -231,4 +170,5 @@ if __name__ == "__main__":
 
     main(outdir, creds, sleep=90.,
          forceDown=forceDownloads, forceRegen=forceRegenPlot)
+
     print("Exiting!")

@@ -53,6 +53,12 @@ def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
     print("%d files found within %d h of now for the moving pictures" %
           (len(images), videoage))
 
+    if len(images) < 2:
+        # This means we didn't actually find any images within our window!
+        #   Therefore we should just give up and go home.
+        print("Not enough files found! Aborting.")
+        return
+
     # Buffer the last few frames to make it not loop in an annoying way
     images += [images[-1]]*13
     fnames += [fnames[-1]]*13
@@ -86,7 +92,7 @@ def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
         print("GIF saved as %s" % (outname))
 
 
-def shift_hue(img, color=None):
+def shift_hue(img, color=None, debug=False):
     """
     https://stackoverflow.com/questions/7274221/changing-image-hue-with-python-pil
     https://stackoverflow.com/users/190597/unutbu
@@ -102,7 +108,8 @@ def shift_hue(img, color=None):
         #   This is done is HSV space, but PIL still works in 0-255.
         color = np.random.random_integers(0, high=255)
 
-    print("Changing hue to: %d" % (color))
+    if debug is True:
+        print("Changing hue to: %d" % (color))
 
     # Change the color
     hsv[..., 0] = color
@@ -120,7 +127,7 @@ def shift_hue(img, color=None):
     return rgba
 
 
-def applyErrorLogo(img, outname, failimg=None, color=None):
+def applyErrorLogo(img, outname, failimg=None, color=None, debug=False):
     """
 
     """
@@ -132,7 +139,7 @@ def applyErrorLogo(img, outname, failimg=None, color=None):
     oimg = Image.open(img).convert("RGBA")
     fimg = Image.open(failimg).convert("RGBA")
 
-    cimg = shift_hue(fimg, color=color)
+    cimg = shift_hue(fimg, color=color, debug=debug)
 
     # Combine the two; this composites the second over the first
     wimg = Image.alpha_composite(oimg, cimg)

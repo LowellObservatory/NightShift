@@ -46,6 +46,7 @@ def main(outdir, creds, sleep=150., keephours=24.,
 
     # What the base/first part of the output filename will be
     staticname = 'nexrad'
+    nstaticfiles = 48
 
     # Need this for parsing the filename into a dt obj
     dtfmt = "KFSX%Y%m%d_%H%M%S"
@@ -102,29 +103,37 @@ def main(outdir, creds, sleep=150., keephours=24.,
         #   AWS/data query has a resolution of 1 hour, so there can sometimes
         #   be fighting of downloading/deleting/redownloading/deleting ...
         fudge = 1.
-        # BUT only do anything if we actually made a new file!
+
+        # Now we look for old files.  Looking is ok!  We won't actually act
+        #   unless there's a valid reason to do so.
+        ofiles = dtfmt + "_C13.png"
+        curpngs, oldpngs = utils.findOldFiles(pout, "*.png", when,
+                                              maxage=keephours+fudge,
+                                              dtfmt=ofiles)
+
+        ofiles = dtfmt
+        curraws, oldraws = utils.findOldFiles(dout, "*", when,
+                                              maxage=keephours+fudge,
+                                              dtfmt=ofiles)
+
         if nplots > 0:
-            dtfmtpng = dtfmt + '.png'
-            cpng = utils.clearOldFiles(pout, "*.png", when,
-                                       maxage=keephours+fudge, dtfmt=dtfmtpng)
-            craw = utils.clearOldFiles(dout, "*", when,
-                                       maxage=keephours+fudge, dtfmt=dtfmt)
+            # Remove the dead/old ones
+            #   BUT notice that this is only if we made new files!
+            utils.deleteOldFiles(oldpngs)
+            utils.deleteOldFiles(oldraws)
 
             print("%d, %d raw and png files remain within %.1f + %.1f hours" %
-                  (len(cpng), len(craw), keephours, fudge))
+                  (len(curraws), len(curpngs), keephours, fudge))
 
-            print("Copying the latest/last files to an accessible spot...")
-            # Since they're good filenames we can just sort and take the last
-            #   if there are actually any current ones left of course
-            nstaticfiles = 48
-
-            # Move our files to the set of static filenames. This will
-            #   check (cpng) to see if there are actually any files that
-            #   are new, and if so it'll shuffle the files into the correct
-            #   order of static filenames.
-            utils.copyStaticFilenames(nstaticfiles, lout, staticname, cpng)
-        else:
-            print("No new files downloaded so skipping all actions.")
+        print("Copying the latest/last files to an accessible spot...")
+        # Move our files to the set of static filenames. This will
+        #   check (cpng) to see if there are actually any files that
+        #   are new, and if so it'll shuffle the files into the correct
+        #   order of static filenames.
+        # This will stamp files that are > 4 hours old with a warning
+        utils.copyStaticFilenames(curpngs, lout,
+                                  staticname, nstaticfiles,
+                                  errorAge=4., errorStamp=True)
 
         print("Sleeping for %03d seconds..." % (sleep))
         time.sleep(sleep)
