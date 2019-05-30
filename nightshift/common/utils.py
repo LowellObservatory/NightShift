@@ -154,14 +154,14 @@ def shift_hue(img, color=None):
     # Change the color
     hsv[..., 0] = color
 
-    # Make the color saturated
-    hsv[..., 1] = 255
+    # Make the color mostly saturated
+    hsv[..., 1] = 200
 
-    # Set the brightness midrange
-    hsv[..., 2] = 127
+    # Set the brightness to mostly bright
+    hsv[..., 2] = 200
 
     # Convert back to RGB space, and slap our alpha channel back on
-    rgba = Image.fromarray(hsv).convert("RGBA")
+    rgba = Image.fromarray(hsv, mode='HSV').convert("RGBA")
     rgba.putalpha(origalpha)
 
     return rgba
@@ -182,10 +182,8 @@ def applyErrorLogo(img, outname, failimg=None, color=None):
     cimg = shift_hue(fimg, color=color)
 
     # Combine the two; this composites the second over the first
-    wimg = np.array(oimg) + np.array(cimg)
-
-    wimg = Image.fromarray(wimg)
-    cimg.save(outname)
+    wimg = Image.alpha_composite(oimg, cimg)
+    wimg.save(outname)
     wimg.close()
 
 
