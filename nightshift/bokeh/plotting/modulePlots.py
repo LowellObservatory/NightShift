@@ -321,8 +321,11 @@ def deshred(plist, failVal=-1, delim=":", name=None):
     # Just use the properties from the first one and assume the rest follow
     #   in terms of whether they were too old or not
     fObj = valJudgement()
+
+    # Start with the values in the very first one
     fObj.timestamp = plist[0].timestamp
     fObj.tooOld = plist[0].tooOld
+    fObj.likelyInvalid = plist[0].likelyInvalid
 
     rstr = ""
     for i, each in enumerate(plist):
