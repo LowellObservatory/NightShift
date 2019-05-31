@@ -117,7 +117,7 @@ def dataGatherer(moduleKey, mods, qdata):
     cEl = bplot.deshred([cEl_d, cEl_m, cEl_s],
                         delim=":", name="Current Elevation")
     cAzEl = bplot.deshred([cAz, cEl],
-                          delim="/", name="Current Az/El")
+                          delim=" / ", name="Current Az/El")
 
     dRA = bplot.deshred([dRA_h, dRA_m, dRA_s],
                         delim=":", name="Demand RA")
