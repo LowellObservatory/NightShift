@@ -34,7 +34,8 @@ import nightshift.bokeh.ephemera as ephemera
 import nightshift.bokeh.plotting.colorWheelies as cwheels
 
 from nightshift.bokeh.dct import facsumLPI, facsumTCS
-from nightshift.bokeh.dct import dctWeather, dctWind
+from nightshift.bokeh.dct import dctWeather, dctWeatherTable
+from nightshift.bokeh.dct import dctWind, dctWindTable
 from nightshift.bokeh.dct import instrumentTelem
 
 
@@ -125,8 +126,14 @@ def configServer():
     dctWeatherFunc = FunctionHandler(dctWeather.make_plot)
     dctWeatherApp = Application(dctWeatherFunc)
 
+    dctWeatherTableFunc = FunctionHandler(dctWeatherTable.makeTable)
+    dctWeatherTableApp = Application(dctWeatherTableFunc)
+
     dctWindFunc = FunctionHandler(dctWind.make_plot)
     dctWindApp = Application(dctWindFunc)
+
+    dctWindTableFunc = FunctionHandler(dctWindTable.makeTable)
+    dctWindTableApp = Application(dctWindTableFunc)
 
     lmiTempFunc = FunctionHandler(instrumentTelem.make_plot)
     lmiTempApp = Application(lmiTempFunc)
@@ -138,7 +145,9 @@ def configServer():
     facsumLPIApp = Application(facsumLPIFunc)
 
     apps = {'/dctweather': dctWeatherApp,
+            '/dctweathertable': dctWeatherTableApp,
             '/dctwind': dctWindApp,
+            '/dctwindtable': dctWindTableApp,
             '/lmitemps': lmiTempApp,
             '/facsum_tcs': facsumTCSApp,
             '/facsum_lpi': facsumLPIApp}

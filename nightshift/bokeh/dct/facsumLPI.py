@@ -132,7 +132,7 @@ def makeFacSum(doc):
     dtab, nRows = tabs.setupTable(cds)
 
     dtab.width = 390
-    dtab.height = 290
+    dtab.height = 270
     dtab.margin = 0
     dtab.header_row = False
 

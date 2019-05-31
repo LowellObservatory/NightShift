@@ -149,6 +149,8 @@ def getLastVal(cds, cdstag):
 def getLast(p1, fieldname, label=None, lastIdx=None, compTime=None,
             scaleFactor=None, fstr=None, nullVal=None):
     """
+    Remember: fstr is a FORMAT string! Can be used to add units,
+    control precision, etc.
     """
     retObj = valJudgement()
 
