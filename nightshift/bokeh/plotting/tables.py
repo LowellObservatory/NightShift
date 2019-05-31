@@ -18,27 +18,32 @@ from __future__ import division, print_function, absolute_import
 from bokeh.models import DataTable, TableColumn, HTMLTemplateFormatter
 
 
-def setupTable(cds):
+def setupTable(cds, template=None):
     """
     """
-    # Define our color format/template
-    #   This uses Underscore’s template method and syntax.
-    #   http://underscorejs.org/#template
-    template = """
-                <b>
-                <div style="background:<%=
-                    (function ageColorer(){
-                        if(ageStatement){
-                        return("#ff0000;opacity:0.25;")
-                        }
-                        else{
-                        return("none;")
-                        }
-                    }()) %>;">
-                    <%= value %>
-                </div>
-                </b>
-                """
+    if template is None:
+        # Define our color format/template
+        #   This uses Underscore’s template method and syntax.
+        #   http://underscorejs.org/#template
+        template = """
+                    <b>
+                    <div style="background:<%=
+                        (function ageColorer(){
+                            if(ageStatement){
+                            return("#ff0000;opacity:0.25;")
+                            }
+                            else{
+                            return("none;")
+                            }
+                        }()) %>;">
+                        <%= value %>
+                    </div>
+                    </b>
+                    """
+    elif template == 'none':
+        template = ""
+    else:
+        template = template
 
     formatter = HTMLTemplateFormatter(template=template)
 

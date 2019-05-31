@@ -44,7 +44,7 @@ def dataGatherer(m, qdata, timeFilter=None, fillNull=True, debug=True):
     # For now, I'm ignoring the wind direction information. Will revisit.
     r = r.drop("WindDir2MinAvg", axis=1)
 
-    # Adjust the units from mph to m/s (
+    # Adjust the units from mph to m/s
     #   Decided to be super pedantic and break it down to the fundamental
     #   definition of 1 inch == 2.54 cm.  Silly, I know.  Whatever.
     imperialToMetric = (63360./(60.*60.))*(0.0254)
@@ -178,7 +178,7 @@ def make_plot(doc):
             print("New data streamed; %d row(s) added" % (nf.shape[0]))
 
         # Check to see if we have to update the sunrise/sunset times
-        #   Create ones so it's super easy to just compare by .location
+        #   Create new ones so it's super easy to just compare by .location
         nsunrise, nsunset = lplot.createSunAnnotations(qdata)
 
         # Check to see if there's actually an update
