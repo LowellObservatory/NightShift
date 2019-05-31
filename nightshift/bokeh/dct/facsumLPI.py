@@ -22,7 +22,8 @@ import numpy as np
 
 from bokeh.plotting import ColumnDataSource
 
-from ..plotting import modulePlots as bplot
+from ..plotting import helpers
+from ..plotting import tables as tabs
 
 
 def dataGatherer(m, qdata):
@@ -46,26 +47,26 @@ def dataGatherer(m, qdata):
     now = np.datetime64(dt.datetime.utcnow())
 
     # These are from other data sources, so get their values too
-    domeshut = bplot.getLast(r2, "DomeShutter", compTime=now)
-    mirrorcov = bplot.getLast(r, "MirrorCover", compTime=now)
+    domeshut = helpers.getLast(r2, "DomeShutter", compTime=now)
+    mirrorcov = helpers.getLast(r, "MirrorCover", compTime=now)
 
     # We use the nullVal parameter for these so we can catch the
     #   .likelyInvalid parameters in the final table data collection since
     #   they have special logic a little down below
-    instcover = bplot.getLast(r3, "InstCover", compTime=now, nullVal=-1)
+    instcover = helpers.getLast(r3, "InstCover", compTime=now, nullVal=-1)
 
-    portT = bplot.getLast(r4, 'PortThru', compTime=now, nullVal=-1)
-    portA = bplot.getLast(r4, 'PortA', compTime=now, nullVal=-1)
-    portB = bplot.getLast(r4, 'PortB', compTime=now, nullVal=-1)
-    portC = bplot.getLast(r4, 'PortC', compTime=now, nullVal=-1)
-    portD = bplot.getLast(r4, 'PortD', compTime=now, nullVal=-1)
+    portT = helpers.getLast(r4, 'PortThru', compTime=now, nullVal=-1)
+    portA = helpers.getLast(r4, 'PortA', compTime=now, nullVal=-1)
+    portB = helpers.getLast(r4, 'PortB', compTime=now, nullVal=-1)
+    portC = helpers.getLast(r4, 'PortC', compTime=now, nullVal=-1)
+    portD = helpers.getLast(r4, 'PortD', compTime=now, nullVal=-1)
 
-    m2piston = bplot.getLast(r5, 'M2PistonDemand',
-                             label="Demand M2 Piston",
-                             compTime=now, scaleFactor=1e6, fstr="%.3f")
-    totfocus = bplot.getLast(r5, 'totalFocusOffset',
-                             label="Total Focus Offset",
-                             compTime=now, scaleFactor=1e6, fstr="%.3f")
+    m2piston = helpers.getLast(r5, 'M2PistonDemand',
+                               label="Demand M2 Piston",
+                               compTime=now, scaleFactor=1e6, fstr="%.3f")
+    totfocus = helpers.getLast(r5, 'totalFocusOffset',
+                               label="Total Focus Offset",
+                               compTime=now, scaleFactor=1e6, fstr="%.3f")
 
     # Finally done! Now put it all into a list so it can be passed
     #   back a little easier and taken from there
@@ -81,7 +82,7 @@ def dataGatherer(m, qdata):
             if each.value == 0:
                 values.append("Closed")
             elif each.value == -1:
-                values.append(bplot.funnyValues())
+                values.append(helpers.funnyValues())
             else:
                 values.append("Open")
             labels.append(each.label)
@@ -89,7 +90,7 @@ def dataGatherer(m, qdata):
             if each.value == 0:
                 values.append("Inactive")
             elif each.value == -1:
-                values.append(bplot.funnyValues())
+                values.append(helpers.funnyValues())
             else:
                 values.append("Active")
             labels.append(each.label)
@@ -128,7 +129,7 @@ def makeFacSum(doc):
     #   specific tags/reorganizing
     cds = dataGatherer(m, qdata)
 
-    dtab, nRows = bplot.setupTable(cds)
+    dtab, nRows = tabs.setupTable(cds)
 
     dtab.width = 390
     dtab.height = 290

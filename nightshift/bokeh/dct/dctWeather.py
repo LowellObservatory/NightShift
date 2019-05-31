@@ -20,7 +20,8 @@ from collections import OrderedDict
 
 from bokeh.models import DataRange1d
 
-from ..plotting import modulePlots as bplot
+from ..plotting import helpers
+from ..plotting import lineplots as lplot
 
 
 def dataGatherer(m, qdata, timeFilter=None, fillNull=True, debug=True):
@@ -155,10 +156,10 @@ def make_plot(doc):
 
     # This does everything else. Loops over the columns in the 'r' DataFrame
     #   and creates a ColumnDataSource for the resulting figure
-    fig, cds, cols = bplot.commonPlot(r, ldict, y1lim, dset,
+    fig, cds, cols = lplot.commonPlot(r, ldict, y1lim, dset,
                                       height=400, width=500, y2=y2)
 
-    sunrise, sunset = bplot.createSunAnnotations(qdata)
+    sunrise, sunset = lplot.createSunAnnotations(qdata)
     fig.add_layout(sunrise)
     fig.add_layout(sunset)
 
@@ -181,14 +182,14 @@ def make_plot(doc):
         lastTime = cds.data['index'].max()
 
         # Turn it into a datetime.datetime (with UTC timezone)
-        lastTimedt = bplot.convertTimestamp(lastTime, tz='UTC')
+        lastTimedt = helpers.convertTimestamp(lastTime, tz='UTC')
 
         # Sweep up all the data, and filter down to only those
         #   after the given time
         nf = dataGatherer(m, qdata, timeFilter=lastTimedt)
 
         # Check the data for updates, and downselect to just the newest
-        mds2 = bplot.newDataCallback(cds, cols, nf, lastTimedt, y1lim)
+        mds2 = lplot.newDataCallback(cds, cols, nf, lastTimedt, y1lim)
 
         # Actually update the data
         if mds2 != {}:
@@ -197,7 +198,7 @@ def make_plot(doc):
 
         # Check to see if we have to update the sunrise/sunset times
         #   Create ones so it's super easy to just compare by .location
-        nsunrise, nsunset = bplot.createSunAnnotations(qdata)
+        nsunrise, nsunset = lplot.createSunAnnotations(qdata)
 
         # Check to see if there's actually an update
         if sunrise.location != nsunrise.location:

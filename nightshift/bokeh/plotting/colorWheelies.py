@@ -8,7 +8,7 @@
 #
 #  @author: rhamilton
 
-"""
+"""Collection of helper routines used when choosing/setting color tables.
 """
 
 from __future__ import division, print_function, absolute_import

@@ -18,7 +18,8 @@ from __future__ import division, print_function, absolute_import
 import datetime as dt
 from collections import OrderedDict
 
-from ..plotting import modulePlots as bplot
+from ..plotting import helpers
+from ..plotting import lineplots as lplot
 
 
 def dataGatherer(m, qdata, timeFilter=None, fillNull=True, debug=True):
@@ -139,7 +140,7 @@ def make_plot(doc):
 
     # This does everything else. Loops over the columns in the 'r' DataFrame
     #   and creates a ColumnDataSource for the resulting figure
-    fig, cds, cols = bplot.commonPlot(r, ldict, y1lim, dset,
+    fig, cds, cols = lplot.commonPlot(r, ldict, y1lim, dset,
                                       height=400, width=500)
 
     # At this point, we're done! Just apply the theme and attach the figure
@@ -161,14 +162,14 @@ def make_plot(doc):
         lastTime = cds.data['index'].max()
 
         # Turn it into a datetime.datetime (with UTC timezone)
-        lastTimedt = bplot.convertTimestamp(lastTime, tz='UTC')
+        lastTimedt = helpers.convertTimestamp(lastTime, tz='UTC')
 
         # Sweep up all the data, and filter down to only those
         #   after the given time
         nf = dataGatherer(m, qdata, timeFilter=lastTimedt)
 
         # Check the data for updates, and downselect to just the newest
-        mds2 = bplot.newDataCallback(cds, cols, nf, lastTimedt, y1lim)
+        mds2 = lplot.newDataCallback(cds, cols, nf, lastTimedt, y1lim)
 
         # Actually update the data
         if mds2 != {}:
