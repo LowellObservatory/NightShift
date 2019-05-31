@@ -328,7 +328,8 @@ def deshred(plist, failVal=-1, delim=":", name=None):
     for i, each in enumerate(plist):
         # Catch an invalid value and escape early, so we can write just
         #   one "bad" value in it
-        if each.value == failVal:
+        # if each.value == failVal:
+        if each.likelyInvalid is True:
             break
         else:
             # Smoosh it all together; if it's the last value, don't

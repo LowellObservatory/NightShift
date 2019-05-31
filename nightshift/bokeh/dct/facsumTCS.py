@@ -57,6 +57,23 @@ def dataGatherer(moduleKey, mods, qdata):
     cDec_m = bplot.getLast(r, "cDec_m", compTime=now, nullVal=-1)
     cDec_s = bplot.getLast(r, "cDec_s", compTime=now, nullVal=-1)
 
+    cEquinoxPrefix = bplot.getLast(r, "cEqP",
+                                   label="Current Equinox Prefix",
+                                   compTime=now, nullVal=-1)
+    cEquinoxYear = bplot.getLast(r, "cEqY",
+                                 label="Current Equinox Year",
+                                 compTime=now, nullVal=-1)
+    cFrame = bplot.getLast(r, "cFrame", label="Current Frame",
+                           compTime=now, nullVal=-1)
+
+    cAz_d = bplot.getLast(r, "cAz_d", compTime=now, nullVal=-1)
+    cAz_m = bplot.getLast(r, "cAz_m", compTime=now, nullVal=-1)
+    cAz_s = bplot.getLast(r, "cAz_s", compTime=now, nullVal=-1)
+
+    cEl_d = bplot.getLast(r, "cEl_d", compTime=now, nullVal=-1)
+    cEl_m = bplot.getLast(r, "cEl_m", compTime=now, nullVal=-1)
+    cEl_s = bplot.getLast(r, "cEl_s", compTime=now, nullVal=-1)
+
     # DEMAND coords
     dRA_h = bplot.getLast(r, "dRA_h", compTime=now, nullVal=-1)
     dRA_m = bplot.getLast(r, "dRA_m", compTime=now, nullVal=-1)
@@ -65,6 +82,15 @@ def dataGatherer(moduleKey, mods, qdata):
     dDec_d = bplot.getLast(r, "dDec_d", compTime=now, nullVal=-1)
     dDec_m = bplot.getLast(r, "dDec_m", compTime=now, nullVal=-1)
     dDec_s = bplot.getLast(r, "dDec_s", compTime=now, nullVal=-1)
+
+    dEquinoxPrefix = bplot.getLast(r, "dEqP",
+                                   label="Demand Equinox Prefix",
+                                   compTime=now, nullVal=-1)
+    dEquinoxYear = bplot.getLast(r, "dEqY",
+                                 label="Demand Equinox Year",
+                                 compTime=now, nullVal=-1)
+    dFrame = bplot.getLast(r, "dFrame", label="Demand Frame",
+                           compTime=now, nullVal=-1)
 
     # HA
     cHA_h = bplot.getLast(r, "cHA_h", compTime=now, nullVal=-1)
@@ -81,13 +107,26 @@ def dataGatherer(moduleKey, mods, qdata):
                         delim=":", name="Current RA")
     cDec = bplot.deshred([cDec_d, cDec_m, cDec_s],
                          delim=":", name="Current Dec")
-    cFrame = bplot.getLast(r, "cFrame", label="Current Frame", compTime=now)
+    cRef = bplot.deshred([cEquinoxPrefix, cEquinoxYear],
+                         delim="", name="Current Reference Frame")
+    cFin = bplot.deshred([cRA, cDec, cRef, cFrame],
+                         delim=" ", name="Current Sky Coordinates")
+
+    cAz = bplot.deshred([cAz_d, cAz_m, cAz_s],
+                        delim=":", name="Current Azimuth")
+    cEl = bplot.deshred([cEl_d, cEl_m, cEl_s],
+                        delim=":", name="Current Elevation")
+    cAzEl = bplot.deshred([cAz, cEl],
+                          delim="/", name="Current Az/El")
 
     dRA = bplot.deshred([dRA_h, dRA_m, dRA_s],
                         delim=":", name="Demand RA")
     dDec = bplot.deshred([dDec_d, dDec_m, dDec_s],
                          delim=":", name="Demand Dec")
-    dFrame = bplot.getLast(r, "dFrame", label="Demand Frame", compTime=now)
+    dRef = bplot.deshred([dEquinoxPrefix, dEquinoxYear],
+                         delim="", name="Current Reference Frame")
+    dFin = bplot.deshred([dRA, dDec, dRef, dFrame],
+                         delim=" ", name="Demand Sky Coordinates")
 
     cHA = bplot.deshred([cHA_h, cHA_m, cHA_s], delim=":", name="Current HA")
 
@@ -120,10 +159,14 @@ def dataGatherer(moduleKey, mods, qdata):
     # Finally done! Now put it all into a list so it can be passed
     #   back a little easier and taken from there
     tableDat = [sunset, sunrise,
-                targname, lst, cHA,
-                cRA, dRA,
-                cDec, dDec,
-                cFrame, dFrame,
+                targname, lst,
+                cHA,
+                cAzEl,
+                cFin,
+                dFin,
+                # RA, dRA,
+                # cDec, dDec,
+                # cFrame, dFrame,
                 airmass, guidemode,
                 sundist, moondist,
                 sunalt, moonalt, moonphase]
