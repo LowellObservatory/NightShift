@@ -106,7 +106,7 @@ def main(outdir, creds, sleep=150., keephours=24.,
 
         # Now we look for old files.  Looking is ok!  We won't actually act
         #   unless there's a valid reason to do so.
-        ofiles = dtfmt + "_C13.png"
+        ofiles = dtfmt + ".png"
         curpngs, oldpngs = utils.findOldFiles(pout, "*.png", when,
                                               maxage=keephours+fudge,
                                               dtfmt=ofiles)
