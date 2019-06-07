@@ -15,7 +15,9 @@ from __future__ import division, print_function, absolute_import
 
 from collections import OrderedDict
 
-from ..common import utils as comutil
+from ligmos.utils.confutils import assignConf
+from ligmos.utils.confparsers import parseConfFile
+# from ..common import utils as comutil
 
 
 class moduleConfig():
@@ -65,43 +67,6 @@ class databaseQuery():
         self.rn = 24
 
 
-def assignConf(obj, conf):
-    """
-    Given an arbitrary class and a parsed configuration file, assign keys
-    from the latter into parameters in the former.
-
-    Assumes that ALL keys in the class are present in the configuration; if
-    they aren't, then they're set to ```None``` and caught/announced in the
-    ```KeyError``` exception below.
-
-    TODO: Move this over into common.utils and integrate elsewhere.
-    """
-    for key in obj.__dict__:
-        try:
-            kval = conf[key]
-            kval = kval.strip().split(",")
-            kval = [kv.strip() for kv in kval]
-
-            # kval is now definitely a list
-            nkval = []
-            for val in kval:
-                if val.lower() == "none":
-                    nkval.append(None)
-                else:
-                    nkval.append(val)
-
-            # If there's just one object then return it flat
-            if len(nkval) == 1:
-                nkval = nkval[0]
-            setattr(obj, key, nkval)
-        except KeyError:
-            print("Improper config!")
-            print("Missing key %s" % (key))
-            setattr(obj, key, None)
-
-    return obj
-
-
 def alignDBConfig(queries):
     """
     """
@@ -136,7 +101,6 @@ def groupConfFiles(queries, modules):
     allQueries = []
     for sect in modules.keys():
         # Parse the conf file section.
-        #   USE THE assignConf FUNCTION IN HERE
         mod = assignConf(moduleConfig(), modules[sect])
 
         # Assign the query objects to the module class now
@@ -168,13 +132,13 @@ def parser(qconff, mconff):
     """
     """
     # Parse the text file
-    qs = comutil.parseConfFile(qconff, enableCheck=False)
+    qs = parseConfFile(qconff, enableCheck=False)
 
     # Associate the database queries with the proper database connection class
     qs = alignDBConfig(qs)
 
     # Parse the text file and check if any sections are disabled
-    ms = comutil.parseConfFile(mconff, enableCheck=True)
+    ms = parseConfFile(mconff, enableCheck=True)
 
     # Now combine the modules and queries into stuff we can itterate over
     modules, queries = groupConfFiles(qs, ms)

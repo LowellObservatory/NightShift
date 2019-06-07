@@ -25,66 +25,40 @@ from datetime import datetime as dt
 from . import images
 
 
-def parseConfFile(filename, enableCheck=True):
-    """
-    TODO: Check to see if this is duplicated in ligmos
-    """
-    try:
-        config = conf.SafeConfigParser()
-        config.read_file(open(filename, 'r'))
-    except IOError as err:
-        config = None
-        print(str(err))
-        return config
+# def checkEnabled(conf):
+#     """
+#     TODO: Check to see if this is duplicated in ligmos
+#     TODO: Check to see if this can be combined with assignConf
+#     """
+#     enset = OrderedDict()
+#     for sect in conf.sections():
+#         en = False
+#         for key in conf[sect].keys():
+#             if key.lower() == 'enabled':
+#                 en = conf[sect].getboolean(key)
+#                 if en is True:
+#                     enset.update({sect: conf[sect]})
 
-    sections = config.sections()
-    tsections = ' '.join(sections)
-
-    print("Found the following sections in the configuration file:")
-    print("%s\n" % tsections)
-
-    if enableCheck is True:
-        enconfig = checkEnabled(config)
-    else:
-        enconfig = dict(config)
-
-    return enconfig
+#     return enset
 
 
-def checkEnabled(conf):
-    """
-    TODO: Check to see if this is duplicated in ligmos
-    TODO: Check to see if this can be combined with assignConf
-    """
-    enset = OrderedDict()
-    for sect in conf.sections():
-        en = False
-        for key in conf[sect].keys():
-            if key.lower() == 'enabled':
-                en = conf[sect].getboolean(key)
-                if en is True:
-                    enset.update({sect: conf[sect]})
+# def assignConf(classInstance, conf):
+#     """
+#     Accepts a ConfigParser instance and sets the parameters found within it
+#     TODO: Check to see if this is duplicated in ligmos
+#     TODO: Check to see if this can be combined with checkEnabled
+#     """
+#     # Assign the conf. file section title as the webcam name
+#     classInstance.name = conf.name
 
-    return enset
+#     # Fill in the rest of the conf. file keys
+#     for key in conf.keys():
+#         if key.lower() == 'enabled':
+#             setattr(classInstance, key, conf.getboolean(key))
+#         else:
+#             setattr(classInstance, key, conf[key])
 
-
-def assignConf(classInstance, conf):
-    """
-    Accepts a ConfigParser instance and sets the parameters found within it
-    TODO: Check to see if this is duplicated in ligmos
-    TODO: Check to see if this can be combined with checkEnabled
-    """
-    # Assign the conf. file section title as the webcam name
-    classInstance.name = conf.name
-
-    # Fill in the rest of the conf. file keys
-    for key in conf.keys():
-        if key.lower() == 'enabled':
-            setattr(classInstance, key, conf.getboolean(key))
-        else:
-            setattr(classInstance, key, conf[key])
-
-    return classInstance
+#     return classInstance
 
 
 def getFilenameAgeDiff(fname, now, dtfmt="%Y%j%H%M%S%f"):
