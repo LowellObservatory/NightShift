@@ -14,7 +14,7 @@ from collections import OrderedDict
 
 import time
 
-from ligmos import utils
+from ligmos import utils, confparsers
 
 from nightshift.common import utils as comutils
 from nightshift.webcam import grab_cams as cams
@@ -41,7 +41,7 @@ def webcamConf(config):
         #   actual .conf file; no error checking is done to see if those
         #   defined in the class are actually those being assigned,
         #   so there could still be problems lurking.
-        wcam = comutils.assignConf(wcam, config[each])
+        wcam = confparsers.assignConf(wcam, config[each])
 
         allcams.update({wcam.name: wcam})
 
@@ -69,8 +69,8 @@ def main():
 
     # Read the webcam config file and parse it accordingly.
     #   Will return an OrderedDict of enabled webcams IF enableCheck is True
-    basecamConfig = comutils.parseConfFile('./config/webcams.conf',
-                                           enableCheck=False)
+    basecamConfig = confparsers.parseConfFile('./config/webcams.conf',
+                                              enableCheck=False)
     allcams, oncams = webcamConf(basecamConfig)
 
     # Before we start, check the ALL the image output directories.

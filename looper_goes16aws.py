@@ -17,13 +17,13 @@ import os
 import time
 from datetime import datetime as dt
 
-from ligmos.utils import logs
+from ligmos.utils import logs, confparsers
 
 from nightshift.goes import plot, aws
-from nightshift.common import maps, utils, images
+from nightshift.common import maps, utils
 
 
-def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
+def main(outdir, creds, sleep=150., keephours=24.,
          forceDown=False, forceRegen=False):
     """
     'outdir' is the *base* directory for outputs, stuff will be put into
@@ -32,12 +32,15 @@ def main(outdir, creds, sleep=150., keephours=24., vidhours=4.,
     'keephours' is the number of hours of data to keep on hand. Old stuff
     is deleted to keep things managable
 
+    (REMOVED FROM CALLING SEQUENCE)
     'vidhours' is the number of hours of data to make into a GIF (or MP4).
     6 hours equates to about 72 images in the video
 
     Tailored for a single channel/band of output ONLY. To have multiple bands
     outputting to a single directory this NEEDS some restructuring!!!
     """
+    vidhours=4.
+
     aws_keyid = creds['s3_RO']['aws_access_key_id']
     aws_secretkey = creds['s3_RO']['aws_secret_access_key']
 
@@ -166,7 +169,7 @@ if __name__ == "__main__":
     # Set up logging (using ligmos' quick 'n easy wrapper)
     logs.setup_logging(logName=logname, nLogs=30)
 
-    creds = utils.parseConfFile(awsconf, enableCheck=False)
+    creds = confparsers.parseConfFile(awsconf, enableCheck=False)
 
     main(outdir, creds, sleep=90.,
          forceDown=forceDownloads, forceRegen=forceRegenPlot)

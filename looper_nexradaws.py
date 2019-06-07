@@ -17,7 +17,7 @@ import os
 import time
 from datetime import datetime as dt
 
-from ligmos.utils import logs
+from ligmos.utils import logs, confparsers
 
 from nightshift.radar import plot, aws
 from nightshift.common import maps, utils
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     # Set up logging (using ligmos' quick 'n easy wrapper)
     logs.setup_logging(logName=logname, nLogs=30)
 
-    creds = utils.parseConfFile(awsconf, enableCheck=False)
+    creds = confparsers.parseConfFile(awsconf, enableCheck=False)
 
     main(outdir, creds, sleep=90.,
          forceDown=forceDownloads, forceRegen=forceRegenPlot)
