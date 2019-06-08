@@ -14,7 +14,7 @@ from collections import OrderedDict
 
 import time
 
-from ligmos import utils, confparsers
+from ligmos.utils import confparsers, confutils, files, logs
 
 from nightshift.common import utils as comutils
 from nightshift.webcam import grab_cams as cams
@@ -41,15 +41,17 @@ def webcamConf(config):
         #   actual .conf file; no error checking is done to see if those
         #   defined in the class are actually those being assigned,
         #   so there could still be problems lurking.
-        wcam = confparsers.assignConf(wcam, config[each])
+        wcam = confutils.assignConf(wcam, config[each])
+
+        # Stuff the name in so the next part isn't so awkward
+        wcam.name = each
 
         allcams.update({wcam.name: wcam})
 
         if wcam.enabled is True:
             oncams.update({wcam.name: wcam})
 
-    # We need a -1 on allcams because ConfigParser adds a DEFAULT section
-    print("%d endpoints defined, %d enabled" % (len(allcams)-1, len(oncams)))
+    print("%d endpoints defined, %d enabled" % (len(allcams), len(oncams)))
 
     return allcams, oncams
 
@@ -59,18 +61,20 @@ def main():
     """
     # Switch to file-based logging since docker logs -f is mysteriously failing
     lfile = './outputs/logs/camLooper.log'
+    cfile = './config/webcams.conf'
 
     # Need to pass getList = False otherwise it'll try to generate a list
     #   of files found in that directory and return it to you.
-    comutils.checkOutDir('./outputs/logs/', getList=False)
+    files.checkOutDir('./outputs/logs/', getList=False)
 
     # If abort was True, this'll probably blow up...?
-    utils.logs.setup_logging(logName=lfile, nLogs=5)
+    logs.setup_logging(logName=lfile, nLogs=5)
 
     # Read the webcam config file and parse it accordingly.
     #   Will return an OrderedDict of enabled webcams IF enableCheck is True
-    basecamConfig = confparsers.parseConfFile('./config/webcams.conf',
-                                              enableCheck=False)
+    basecamConfig, _ = confparsers.parseConfFile(cfile,
+                                                 commonBlocks=False,
+                                                 enableCheck=True)
     allcams, oncams = webcamConf(basecamConfig)
 
     # Before we start, check the ALL the image output directories.
@@ -80,7 +84,7 @@ def main():
 
         # Test the output location to make sure it exists
         location = curcam.odir
-        comutils.checkOutDir(location, getList=False)
+        files.checkOutDir(location, getList=False)
 
     # Just run it for ever and ever and ever and ever and ever and ever
     while True:

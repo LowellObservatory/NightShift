@@ -28,11 +28,14 @@ class Webcam():
     """
     def __init__(self):
         self.name = None
+        self.type = None
         self.url = None
         self.user = None
         self.pasw = None
+        self.fmas = None
         self.auth = None
-        self.floc = None
+        self.odir = None
+        self.oname = None
         self.enabled = False
 
 
@@ -75,7 +78,7 @@ def camGrabbie(cam, outfile):
     #   Make sure to do that check in your calling code!
     print("Attempting to write image to %s" % (outfile))
     with open(outfile, "wb") as f:
-        img = httpget(cam.url, auth=auth)
+        img = httpget(cam.url, auth=auth, timeout=5.)
         # Check the HTTP response;
         #   200 - 400 == True
         #   400 - 600 == False
@@ -117,8 +120,11 @@ def getLastFileURL(url, fmask):
 
     Not guaranteed, so beware.
     """
-    flist = sorted(listFD(url, fmask))
-    lastFile = flist[-1]
+    retList = listFD(url, fmask)
+    lastFile = None
+    if retList is not None:
+        flist = sorted(retList)
+        lastFile = flist[-1]
 
     return lastFile
 
@@ -161,3 +167,6 @@ def grabFromOpenDirectory(curcam, outfile):
 
     if imgURL is not None:
         simpleImageCopy(imgURL, outfile)
+    else:
+        # TODO: Finish this!
+        pass
