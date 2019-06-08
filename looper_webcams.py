@@ -26,6 +26,8 @@ def webcamConf(config):
 
     allcams will contain all the entries in the .conf file
     oncams will contain only those in which enabled=True
+
+    TODO: Make this obsolete and just use the ligmos stuff!
     """
     # Ultimate storage locations of final results
     #   allcams will contain everything
