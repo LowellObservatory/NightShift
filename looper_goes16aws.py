@@ -17,7 +17,7 @@ import os
 import time
 from datetime import datetime as dt
 
-from ligmos.utils import logs, confparsers
+from ligmos.utils import confparsers, files, logs
 
 from nightshift.goes import plot, aws
 from nightshift.common import maps, utils
@@ -127,20 +127,20 @@ def main(outdir, creds, sleep=150., keephours=24.,
         # Now we look for old files.  Looking is ok!  We won't actually act
         #   unless there's a valid reason to do so.
         ofiles = dtfmt + "_C13.png"
-        curpngs, oldpngs = utils.findOldFiles(pout, "*.png", when,
+        curpngs, oldpngs = files.findOldFiles(pout, "*.png", when,
                                               maxage=keephours+fudge,
                                               dtfmt=ofiles)
 
         ofiles = dtfmt + "_C13.nc"
-        curraws, oldraws = utils.findOldFiles(dout, "*.nc", when,
+        curraws, oldraws = files.findOldFiles(dout, "*.nc", when,
                                               maxage=keephours+fudge,
                                               dtfmt=ofiles)
 
         if nplots > 0:
             # Remove the dead/old ones
             #   BUT notice that this is only if we made new files!
-            utils.deleteOldFiles(oldpngs)
-            utils.deleteOldFiles(oldraws)
+            files.deleteOldFiles(oldpngs)
+            files.deleteOldFiles(oldraws)
 
             print("%d, %d raw and png files remain within %.1f + %.1f hours" %
                   (len(curraws), len(curpngs), keephours, fudge))
