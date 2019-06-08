@@ -39,7 +39,7 @@ def main(outdir, creds, sleep=150., keephours=24.,
     Tailored for a single channel/band of output ONLY. To have multiple bands
     outputting to a single directory this NEEDS some restructuring!!!
     """
-    vidhours=4.
+    vidhours = 4.
 
     aws_keyid = creds['s3_RO']['aws_access_key_id']
     aws_secretkey = creds['s3_RO']['aws_secret_access_key']
@@ -169,7 +169,11 @@ if __name__ == "__main__":
     # Set up logging (using ligmos' quick 'n easy wrapper)
     logs.setup_logging(logName=logname, nLogs=30)
 
-    creds = confparsers.parseConfFile(awsconf, enableCheck=False)
+    # NOTE: parseConfFile returns TWO things now! Ditch the second one
+    #   since we have no common config blocks
+    creds, _ = confparsers.parseConfFile(awsconf,
+                                         commonBlocks=False,
+                                         enableCheck=False)
 
     main(outdir, creds, sleep=90.,
          forceDown=forceDownloads, forceRegen=forceRegenPlot)
