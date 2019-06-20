@@ -17,6 +17,7 @@ from collections import OrderedDict
 
 from ligmos.utils.confparsers import parseConfFile
 from ligmos.utils.confutils import assignConf, parseConfPasses
+from ligmos.utils import classes
 
 from . import confClasses
 # from ..common import utils as comutil
@@ -32,15 +33,13 @@ def alignDBConfig(queries):
     dbs = OrderedDict()
     vqs = OrderedDict()
     for sec in queries:
-        if sec.lower().startswith("database-"):
-            idb = assignConf(confClasses.databaseConfig(), queries[sec])
-            dbs.update({sec: idb})
-        elif sec.lower().startswith("broker-"):
-            broker = assignConf(confClasses.brokerConfig(), queries[sec])
-            dbs.update({sec: broker})
+        if sec.lower().startswith("database-") or\
+           sec.lower().startswith("broker-"):
+            baseTarg = assignConf(classes.baseTarget(), queries[sec])
+            dbs.update({sec: baseTarg})
         elif sec.lower() != 'default':
             # There's always a "DEFAULT" section after parsing so skip it
-            dbq = assignConf(confClasses.databaseQuery(), queries[sec])
+            dbq = assignConf(classes.databaseQuery(), queries[sec])
             # Setting this outside of __init__ is fine with me
             #   since we're really just renaming for convienence elsewhere
             #   (so I remember that I can ignore this in pylint)
@@ -58,6 +57,9 @@ def alignDBConfig(queries):
 
 def groupConfFiles(queries, modules):
     """
+    This is specifically for the NightWatch setup, in which we have
+    distinct configuration files for the database queries and the modules
+    that utilize them.
     """
     moduleDict = {}
     # loopableSet = []
