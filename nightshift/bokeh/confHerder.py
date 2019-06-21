@@ -15,44 +15,13 @@ from __future__ import division, print_function, absolute_import
 
 from collections import OrderedDict
 
-from ligmos.utils.confparsers import parseConfFile
-from ligmos.utils.confutils import assignConf, parseConfPasses
 from ligmos.utils import classes
+from ligmos.utils.confparsers import parseConfig
+from ligmos.utils.confutils import assignConf, assignComm
+
 
 from . import confClasses
 # from ..common import utils as comutil
-
-
-def alignDBConfig(queries):
-    """
-    We follow a slightly different scheme here, to allow the possibility
-    of multiple independent databases or tables.  That's not possible using
-    the standardized layout over in ligmos, but we still use that parser
-    to get started.
-    """
-    dbs = OrderedDict()
-    vqs = OrderedDict()
-    for sec in queries:
-        if sec.lower().startswith("database-") or\
-           sec.lower().startswith("broker-"):
-            baseTarg = assignConf(classes.baseTarget(), queries[sec])
-            dbs.update({sec: baseTarg})
-        elif sec.lower() != 'default':
-            # There's always a "DEFAULT" section after parsing so skip it
-            dbq = assignConf(classes.databaseQuery(), queries[sec])
-            # Setting this outside of __init__ is fine with me
-            #   since we're really just renaming for convienence elsewhere
-            #   (so I remember that I can ignore this in pylint)
-            dbq.key = sec
-            try:
-                dbkey = queries[sec]['db']
-                dbq.db = dbs[dbkey]
-            except AttributeError:
-                print("FATAL ERROR: database %s not specified!" % (dbkey))
-                dbq = None
-            vqs.update({sec: dbq})
-
-    return vqs
 
 
 def groupConfFiles(queries, modules):
@@ -97,23 +66,16 @@ def parser(qconff, mconff, passes=None):
     """
     """
     # Parse the big list of queries
-    #   It has a common block for database info, but not in the usual sense
-    #   so we need to skip our usual checks for such things
-    if passes is not None:
-        pass
-        # This needs to be rethought. Will probably remove commonBlocks
-        #   concept from parseConfFile in deference to combining
-        #   in the bits from parseConfPasses that are needed!
-        # qs, _ = parseConfPasses()
-    else:
-        qs, _ = parseConfFile(qconff, commonBlocks=False, enableCheck=False)
+    qs, cb = parseConfig(qconff, classes.databaseQuery, passfile=passes,
+                         searchCommon=True, enableCheck=True)
 
     # Associate the database queries with the proper database connection class
-    qs = alignDBConfig(qs)
+    qs = assignComm(qs, cb)
 
     # Parse the text file and check if any sections are disabled
     #   No common blocks in the module config are possible so skip that
-    ms, _ = parseConfFile(mconff, commonBlocks=False, enableCheck=True)
+    ms, _ = parseConfig(mconff, confClasses.moduleConfig, passfile=passes,
+                        searchCommon=False, enableCheck=True)
 
     # Now combine the modules and queries into stuff we can itterate over
     modules, queries = groupConfFiles(qs, ms)
