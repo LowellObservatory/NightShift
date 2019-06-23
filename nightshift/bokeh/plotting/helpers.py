@@ -65,7 +65,8 @@ def funnyValues():
     """
     # Have some fun with it at least
     ustrs = ["inconceivable", "implausible", "improbable",
-             "unknown", "unfathomable",
+             "ineffable", "indescribable",
+             "unknown", "unfathomable", "unspeakable",
              "unimaginable", "unknowable", "unclear",
              "mind-boggling"]
 
