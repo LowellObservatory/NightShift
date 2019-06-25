@@ -17,7 +17,7 @@ from collections import OrderedDict
 
 from ligmos.utils import classes
 from ligmos.utils.confparsers import parseConfig
-from ligmos.utils.confutils import assignConf, assignComm
+from ligmos.workers.confUtils import assignConf, assignComm
 
 
 from . import confClasses
@@ -34,8 +34,7 @@ def groupConfFiles(queries, modules):
     # loopableSet = []
     allQueries = []
     for sect in modules.keys():
-        # Parse the conf file section.
-        mod = assignConf(confClasses.moduleConfig(), modules[sect])
+        mod = modules[sect]
 
         # Assign the query objects to the module class now
         mod.combineConfs(queries)
@@ -66,11 +65,12 @@ def parser(qconff, mconff, passes=None):
     """
     """
     # Parse the big list of queries
+    #   We assume all the queries are live, hence enableCheck is False
     qs, cb = parseConfig(qconff, classes.databaseQuery, passfile=passes,
-                         searchCommon=True, enableCheck=True)
+                         searchCommon=True, enableCheck=False)
 
     # Associate the database queries with the proper database connection class
-    qs = assignComm(qs, cb)
+    qs = assignComm(qs, cb, commkey='database')
 
     # Parse the text file and check if any sections are disabled
     #   No common blocks in the module config are possible so skip that
