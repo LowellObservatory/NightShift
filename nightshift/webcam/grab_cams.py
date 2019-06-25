@@ -28,7 +28,7 @@ def grabSet(camset, failimg=None, interval=0.5):
     """
     for cam in camset:
         currentCamera = camset[cam]
-        print('Retrieving camera image: %s' % (currentCamera.name))
+        print('Retrieving camera image: %s' % (cam))
 
         outfile = "%s/%s" % (currentCamera.odir, currentCamera.oname)
         try:
@@ -43,7 +43,7 @@ def grabSet(camset, failimg=None, interval=0.5):
             print(str(err))
 
             images.tagErrorImage(outfile, failimg=failimg,
-                                 camname=currentCamera.name)
+                                 camname=cam)
 
         time.sleep(interval)
 
@@ -53,9 +53,9 @@ def camGrabbie(cam, outfile):
     Grab an image from an individual camera as defined by the Webcam class
     """
     if cam.auth.lower() == 'digest':
-        auth = HTTPDigestAuth(cam.user, cam.pasw)
+        auth = HTTPDigestAuth(cam.user, cam.password)
     else:
-        auth = HTTPBasicAuth(cam.user, cam.pasw)
+        auth = HTTPBasicAuth(cam.user, cam.password)
 
     # NOTE: This'll barf if the directory (cam.floc) doesn't exist.
     #   Make sure to do that check in your calling code!
