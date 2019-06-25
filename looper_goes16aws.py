@@ -169,11 +169,9 @@ if __name__ == "__main__":
     # Set up logging (using ligmos' quick 'n easy wrapper)
     logs.setup_logging(logName=logname, nLogs=30)
 
-    # NOTE: parseConfFile returns TWO things now! Ditch the second one
-    #   since we have no common config blocks
-    creds, _ = confparsers.parseConfFile(awsconf,
-                                         commonBlocks=False,
-                                         enableCheck=False)
+    # NOTE: We just take a shortcut and use the rawParser here, since we
+    #   don't have much in the way of configuration
+    creds = confparsers.rawParser(awsconf)
 
     main(outdir, creds, sleep=90.,
          forceDown=forceDownloads, forceRegen=forceRegenPlot)
