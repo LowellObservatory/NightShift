@@ -106,7 +106,7 @@ def shift_hue(img, color=None, debug=False):
     if color is None:
         # Apply a random coloring to it to give it some ... flair
         #   This is done is HSV space, but PIL still works in 0-255.
-        color = np.random.random_integers(0, high=255)
+        color = np.random.randint(0, 255 + 1)
 
     if debug is True:
         print("Changing hue to: %d" % (color))
