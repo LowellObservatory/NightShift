@@ -22,23 +22,6 @@ from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 from ..common import images
 
 
-class Webcam():
-    """
-    Class to contain all the important bits of webcam connection information
-    """
-    def __init__(self):
-        self.name = None
-        self.type = None
-        self.url = None
-        self.user = None
-        self.pasw = None
-        self.fmas = None
-        self.auth = None
-        self.odir = None
-        self.oname = None
-        self.enabled = False
-
-
 def grabSet(camset, failimg=None, interval=0.5):
     """
     Grab all camera images in the given dictionary
