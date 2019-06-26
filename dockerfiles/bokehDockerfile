@@ -2,7 +2,7 @@ FROM nightshiftbase
 
 # Not every image needs this, so we'll do it as a one-off in here
 USER root:root
-RUN pip install bokeh
+RUN conda install -y bokeh
 
 # Default command to issue when starting this image in a container
 USER lig
