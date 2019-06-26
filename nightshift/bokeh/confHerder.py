@@ -16,12 +16,10 @@ from __future__ import division, print_function, absolute_import
 from collections import OrderedDict
 
 from ligmos.utils import classes
+from ligmos.workers.confUtils import assignComm
 from ligmos.utils.confparsers import parseConfig
-from ligmos.workers.confUtils import assignConf, assignComm
-
 
 from . import confClasses
-# from ..common import utils as comutil
 
 
 def groupConfFiles(queries, modules):
