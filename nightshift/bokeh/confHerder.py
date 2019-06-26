@@ -31,8 +31,8 @@ def groupConfFiles(queries, modules):
     that utilize them.
     """
     moduleDict = {}
-    # loopableSet = []
-    allQueries = []
+    qDict = OrderedDict()
+
     for sect in modules.keys():
         mod = modules[sect]
 
@@ -48,15 +48,12 @@ def groupConfFiles(queries, modules):
         # Did we survive?
         if mod is not None:
             moduleDict.update({sect: mod})
-            # loopableSet.append(mod)
-            allQueries += mod.queries.values()
 
-        # Turn the unique set of queries into something a little easier to
-        #   interact and associate with later on in the codes
-        qS = set(allQueries)
-        qDict = OrderedDict()
-        for q in qS:
-            qDict.update({q.key: q})
+            # Loop thru the queries in this module, and check to see if
+            #   we've already recorded them as being needed
+            for q in mod.queries:
+                if q not in qDict:
+                    qDict.update({q: mod.queries[q]})
 
     return moduleDict, qDict
 

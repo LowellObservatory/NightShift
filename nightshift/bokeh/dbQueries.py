@@ -35,58 +35,59 @@ def queryConstructor(dbinfo, dtime=48, debug=False):
             print("Can't convert %s to int!" % (dtime))
             dtime = 1
 
-    if dbinfo.db.type.lower() == 'influxdb':
+    if dbinfo.database.type.lower() == 'influxdb':
         if debug is True:
-            print("Searching for %s in %s.%s on %s:%s" % (dbinfo.fn,
-                                                          dbinfo.db.tabl,
-                                                          dbinfo.mn,
-                                                          dbinfo.db.host,
-                                                          dbinfo.db.port))
+            print("Searching for %s in %s.%s on %s:%s" % (dbinfo.fields,
+                                                          dbinfo.tablename,
+                                                          dbinfo.metricname,
+                                                          dbinfo.database.host,
+                                                          dbinfo.database.port))
 
         # Some renames since this was adapted from an earlier version
-        tn = dbinfo.tn
-        if tn is not None:
-            tv = dbinfo.tv
+        tagnames = dbinfo.tagnames
+        if tagnames is not None:
+            tagvals = dbinfo.tagvals
         else:
-            tv = []
+            tagvals = []
 
         # TODO: Someone should write a query validator to make sure
         #   this can't run amok.  For now, make sure the user has
         #   only READ ONLY privileges to the database in question!!!
         query = 'SELECT'
-        if isinstance(dbinfo.fn, list):
-            for i, each in enumerate(dbinfo.fn):
+        if isinstance(dbinfo.fields, list):
+            for i, each in enumerate(dbinfo.fields):
                 # Catch possible fn/dn mismatch
                 try:
-                    query += ' "%s" AS "%s"' % (each.strip(), dbinfo.dn[i])
+                    query += ' "%s" AS "%s"' % (each.strip(),
+                                                dbinfo.fieldlabels[i])
                 except IndexError:
                     query += ' "%s"' % (each.strip())
-                if i != len(dbinfo.fn)-1:
+                if i != len(dbinfo.fields)-1:
                     query += ','
                 else:
                     query += ' '
         else:
-            if dbinfo.dn is not None:
-                query += ' "%s" AS "%s" ' % (dbinfo.fn, dbinfo.dn)
+            if dbinfo.fieldlabels is not None:
+                query += ' "%s" AS "%s" ' % (dbinfo.fields, dbinfo.fieldlabels)
             else:
-                query += ' "%s" ' % (dbinfo.fn)
+                query += ' "%s" ' % (dbinfo.fields)
 
-        query += 'FROM "%s"' % (dbinfo.mn)
+        query += 'FROM "%s"' % (dbinfo.metricname)
         query += ' WHERE time > now() - %02dh' % (dtime)
 
-        if tv != []:
+        if tagvals != []:
             query += ' AND ('
-            if isinstance(dbinfo.tv, list):
-                for i, each in enumerate(tv):
-                    query += '"%s"=\'%s\'' % (tn, each.strip())
+            if isinstance(dbinfo.tagvals, list):
+                for i, each in enumerate(tagvals):
+                    query += '"%s"=\'%s\'' % (tagnames, each.strip())
 
-                    if i != len(tv)-1:
+                    if i != len(tagvals)-1:
                         query += ' OR '
-                query += ') GROUP BY "%s"' % (tn)
+                query += ') GROUP BY "%s"' % (tagnames)
             else:
                 # If we're here, there was only 1 tag value so we don't need
                 #   to GROUP BY anything
-                query += '"%s"=\'%s\')' % (tn, tv)
+                query += '"%s"=\'%s\')' % (tagnames, tagvals)
 
         return query
 
