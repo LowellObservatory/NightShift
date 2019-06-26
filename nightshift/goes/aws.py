@@ -21,6 +21,8 @@ from datetime import timedelta as td
 import botocore
 import numpy as np
 
+from ligmos.utils import files
+
 from .. import common as com
 
 
@@ -76,7 +78,7 @@ def GOESAWSgrab(aws_keyid, aws_secretkey, now, outdir,
     channel = 13
 
     # Check our output directory for files already downloaded
-    donelist = com.utils.checkOutDir(outdir)
+    donelist = files.checkOutDir(outdir)
 
     querybins = genQueries(timedelta, now, inst)
 

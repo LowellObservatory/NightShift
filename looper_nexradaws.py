@@ -17,7 +17,7 @@ import os
 import time
 from datetime import datetime as dt
 
-from ligmos.utils import logs
+from ligmos.utils import logs, files, confparsers
 
 from nightshift.radar import plot, aws
 from nightshift.common import maps, utils
@@ -107,20 +107,20 @@ def main(outdir, creds, sleep=150., keephours=24.,
         # Now we look for old files.  Looking is ok!  We won't actually act
         #   unless there's a valid reason to do so.
         ofiles = dtfmt + ".png"
-        curpngs, oldpngs = utils.findOldFiles(pout, "*.png", when,
+        curpngs, oldpngs = files.findOldFiles(pout, "*.png", when,
                                               maxage=keephours+fudge,
                                               dtfmt=ofiles)
 
         ofiles = dtfmt
-        curraws, oldraws = utils.findOldFiles(dout, "*", when,
+        curraws, oldraws = files.findOldFiles(dout, "*", when,
                                               maxage=keephours+fudge,
                                               dtfmt=ofiles)
 
         if nplots > 0:
             # Remove the dead/old ones
             #   BUT notice that this is only if we made new files!
-            utils.deleteOldFiles(oldpngs)
-            utils.deleteOldFiles(oldraws)
+            files.deleteOldFiles(oldpngs)
+            files.deleteOldFiles(oldraws)
 
             print("%d, %d raw and png files remain within %.1f + %.1f hours" %
                   (len(curraws), len(curpngs), keephours, fudge))
@@ -149,7 +149,9 @@ if __name__ == "__main__":
     # Set up logging (using ligmos' quick 'n easy wrapper)
     logs.setup_logging(logName=logname, nLogs=30)
 
-    creds = utils.parseConfFile(awsconf, enableCheck=False)
+    # NOTE: We just take a shortcut and use the rawParser here, since we
+    #   don't have much in the way of configuration
+    creds = confparsers.rawParser(awsconf)
 
     main(outdir, creds, sleep=90.,
          forceDown=forceDownloads, forceRegen=forceRegenPlot)

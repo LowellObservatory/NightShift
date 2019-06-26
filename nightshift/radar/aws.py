@@ -18,9 +18,10 @@ from __future__ import division, print_function, absolute_import
 from os.path import basename
 from datetime import timedelta as td
 
-import boto3
 import botocore
 import numpy as np
+
+from ligmos.utils import files
 
 from .. import common as com
 
@@ -80,7 +81,7 @@ def NEXRADAWSgrab(aws_keyid, aws_secretkey, now, outdir,
     station = "KFSX"
 
     # Check our output directory for files already downloaded
-    donelist = com.utils.checkOutDir(outdir)
+    donelist = files.checkOutDir(outdir)
 
     # Sample key:
     # 2019/05/17/KFSX/KFSX20190517_000556_V06

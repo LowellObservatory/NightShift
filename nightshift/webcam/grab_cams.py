@@ -22,27 +22,13 @@ from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 from ..common import images
 
 
-class Webcam():
-    """
-    Class to contain all the important bits of webcam connection information
-    """
-    def __init__(self):
-        self.name = None
-        self.url = None
-        self.user = None
-        self.pasw = None
-        self.auth = None
-        self.floc = None
-        self.enabled = False
-
-
 def grabSet(camset, failimg=None, interval=0.5):
     """
     Grab all camera images in the given dictionary
     """
     for cam in camset:
         currentCamera = camset[cam]
-        print('Retrieving camera image: %s' % (currentCamera.name))
+        print('Retrieving camera image: %s' % (cam))
 
         outfile = "%s/%s" % (currentCamera.odir, currentCamera.oname)
         try:
@@ -57,7 +43,7 @@ def grabSet(camset, failimg=None, interval=0.5):
             print(str(err))
 
             images.tagErrorImage(outfile, failimg=failimg,
-                                 camname=currentCamera.name)
+                                 camname=cam)
 
         time.sleep(interval)
 
@@ -67,15 +53,15 @@ def camGrabbie(cam, outfile):
     Grab an image from an individual camera as defined by the Webcam class
     """
     if cam.auth.lower() == 'digest':
-        auth = HTTPDigestAuth(cam.user, cam.pasw)
+        auth = HTTPDigestAuth(cam.user, cam.password)
     else:
-        auth = HTTPBasicAuth(cam.user, cam.pasw)
+        auth = HTTPBasicAuth(cam.user, cam.password)
 
     # NOTE: This'll barf if the directory (cam.floc) doesn't exist.
     #   Make sure to do that check in your calling code!
     print("Attempting to write image to %s" % (outfile))
     with open(outfile, "wb") as f:
-        img = httpget(cam.url, auth=auth)
+        img = httpget(cam.url, auth=auth, timeout=5.)
         # Check the HTTP response;
         #   200 - 400 == True
         #   400 - 600 == False
@@ -117,8 +103,11 @@ def getLastFileURL(url, fmask):
 
     Not guaranteed, so beware.
     """
-    flist = sorted(listFD(url, fmask))
-    lastFile = flist[-1]
+    retList = listFD(url, fmask)
+    lastFile = None
+    if retList is not None:
+        flist = sorted(retList)
+        lastFile = flist[-1]
 
     return lastFile
 
@@ -161,3 +150,6 @@ def grabFromOpenDirectory(curcam, outfile):
 
     if imgURL is not None:
         simpleImageCopy(imgURL, outfile)
+    else:
+        # TODO: Finish this!
+        pass

@@ -15,129 +15,24 @@ from __future__ import division, print_function, absolute_import
 
 from collections import OrderedDict
 
-from ..common import utils as comutil
+from ligmos.utils import classes
+from ligmos.workers.confUtils import assignComm
+from ligmos.utils.confparsers import parseConfig
 
-
-class moduleConfig():
-    def __init__(self):
-        self.title = ''
-        self.queries = None
-        self.drange = 1
-        self.pymodule = None
-        self.endpoint = None
-        self.enabled = False
-
-    def combineConfs(self, queries):
-        qdict = OrderedDict()
-        # Take care of single query configurations; otherwise the following
-        #   loop would shred the string into its component characters and
-        #   would obviously not work
-        if isinstance(self.queries, str):
-            self.queries = [self.queries]
-
-        for q in self.queries:
-            try:
-                qdict.update({q: queries[q]})
-            except KeyError:
-                print("Query %s is undefined! Skipping it..." % (q))
-
-        self.queries = qdict
-
-
-class databaseConfig():
-    def __init__(self):
-        self.host = ''
-        self.port = 8086
-        self.type = 'influxdb'
-        self.tabl = None
-        self.user = None
-        self.pasw = None
-
-
-class databaseQuery():
-    def __init__(self):
-        self.db = None
-        self.mn = None
-        self.fn = None
-        self.dn = None
-        self.tn = None
-        self.tv = None
-        self.rn = 24
-
-
-def assignConf(obj, conf):
-    """
-    Given an arbitrary class and a parsed configuration file, assign keys
-    from the latter into parameters in the former.
-
-    Assumes that ALL keys in the class are present in the configuration; if
-    they aren't, then they're set to ```None``` and caught/announced in the
-    ```KeyError``` exception below.
-
-    TODO: Move this over into common.utils and integrate elsewhere.
-    """
-    for key in obj.__dict__:
-        try:
-            kval = conf[key]
-            kval = kval.strip().split(",")
-            kval = [kv.strip() for kv in kval]
-
-            # kval is now definitely a list
-            nkval = []
-            for val in kval:
-                if val.lower() == "none":
-                    nkval.append(None)
-                else:
-                    nkval.append(val)
-
-            # If there's just one object then return it flat
-            if len(nkval) == 1:
-                nkval = nkval[0]
-            setattr(obj, key, nkval)
-        except KeyError:
-            print("Improper config!")
-            print("Missing key %s" % (key))
-            setattr(obj, key, None)
-
-    return obj
-
-
-def alignDBConfig(queries):
-    """
-    """
-    dbs = OrderedDict()
-    vqs = OrderedDict()
-    for sec in queries:
-        if sec.lower().startswith("database-"):
-            idb = assignConf(databaseConfig(), queries[sec])
-            dbs.update({sec: idb})
-        elif sec.lower() != 'default':
-            dbq = assignConf(databaseQuery(), queries[sec])
-            # Setting this outside of __init__ is fine with me
-            #   since we're really just renaming for convienence elsewhere
-            #   (so I remember that I can ignore this in pylint)
-            dbq.key = sec
-            try:
-                dbkey = queries[sec]['db']
-                dbq.db = dbs[dbkey]
-            except AttributeError:
-                print("FATAL ERROR: database %s not specified!" % (dbkey))
-                dbq = None
-            vqs.update({sec: dbq})
-
-    return vqs
+from . import confClasses
 
 
 def groupConfFiles(queries, modules):
     """
+    This is specifically for the NightWatch setup, in which we have
+    distinct configuration files for the database queries and the modules
+    that utilize them.
     """
     moduleDict = {}
-    # loopableSet = []
-    allQueries = []
+    qDict = OrderedDict()
+
     for sect in modules.keys():
-        # Parse the conf file section.
-        #   USE THE assignConf FUNCTION IN HERE
-        mod = assignConf(moduleConfig(), modules[sect])
+        mod = modules[sect]
 
         # Assign the query objects to the module class now
         mod.combineConfs(queries)
@@ -151,30 +46,31 @@ def groupConfFiles(queries, modules):
         # Did we survive?
         if mod is not None:
             moduleDict.update({sect: mod})
-            # loopableSet.append(mod)
-            allQueries += mod.queries.values()
 
-        # Turn the unique set of queries into something a little easier to
-        #   interact and associate with later on in the codes
-        qS = set(allQueries)
-        qDict = OrderedDict()
-        for q in qS:
-            qDict.update({q.key: q})
+            # Loop thru the queries in this module, and check to see if
+            #   we've already recorded them as being needed
+            for q in mod.queries:
+                if q not in qDict:
+                    qDict.update({q: mod.queries[q]})
 
     return moduleDict, qDict
 
 
-def parser(qconff, mconff):
+def parser(qconff, mconff, passes=None):
     """
     """
-    # Parse the text file
-    qs = comutil.parseConfFile(qconff, enableCheck=False)
+    # Parse the big list of queries
+    #   We assume all the queries are live, hence enableCheck is False
+    qs, cb = parseConfig(qconff, classes.databaseQuery, passfile=passes,
+                         searchCommon=True, enableCheck=False)
 
     # Associate the database queries with the proper database connection class
-    qs = alignDBConfig(qs)
+    qs = assignComm(qs, cb, commkey='database')
 
     # Parse the text file and check if any sections are disabled
-    ms = comutil.parseConfFile(mconff, enableCheck=True)
+    #   No common blocks in the module config are possible so skip that
+    ms, _ = parseConfig(mconff, confClasses.moduleConfig, passfile=passes,
+                        searchCommon=False, enableCheck=True)
 
     # Now combine the modules and queries into stuff we can itterate over
     modules, queries = groupConfFiles(qs, ms)

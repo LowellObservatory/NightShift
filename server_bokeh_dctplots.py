@@ -54,7 +54,7 @@ class masterPlotState():
         self.timestamp = None
 
 
-def batchQuery(plotState=None, site='dct'):
+def batchQuery(plotState=None, site='dct', debug=False):
     """
     It's important to do all of these queries en-masse, otherwise the results
     could end up being confusing - one plot's data could differ by
@@ -77,13 +77,13 @@ def batchQuery(plotState=None, site='dct'):
 
         # Should not only pull this out of the loop, but change it to
         #   use 'bind_params' for extra safety!
-        query = dbq.queryConstructor(q, dtime=q.rn)
+        query = dbq.queryConstructor(q, dtime=q.rangehours, debug=debug)
 
-        td = dbq.getResultsDataFrame(q.db.host, query,
-                                     q.db.port,
-                                     dbuser=q.db.user,
-                                     dbpass=q.db.pasw,
-                                     dbname=q.db.tabl)
+        td = dbq.getResultsDataFrame(q.database.host, query,
+                                     q.database.port,
+                                     dbuser=q.database.user,
+                                     dbpass=q.database.password,
+                                     dbname=q.tablename)
         qdata.update({iq: td})
 
     dts = dt.utcnow()
@@ -208,7 +208,7 @@ if __name__ == "__main__":
 
     # Go and get our initial state of data. Give it the masterPlotState
     #   class so it can be initially stashed in the doc template
-    batchQuery(plotState=plotState)
+    batchQuery(plotState=plotState, debug=True)
 
     # Set up the server
     server = configServer()
