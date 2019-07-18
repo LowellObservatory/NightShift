@@ -179,20 +179,29 @@ def getLast(p1, fieldname, label=None, lastIdx=None, compTime=None,
         # Get the last valid position/value in the dataframe
         lastIdx = p1.index[-1]
 
-        val = getattr(p1, fieldname)[lastIdx]
-        if scaleFactor is not None:
-            sValue = val*scaleFactor
-        else:
-            sValue = val
+        # Make sure we can actually find the data; it could be empty
+        #   if there wasn't anything found within the queried time range!
+        try:
+            val = getattr(p1, fieldname)[lastIdx]
+            if scaleFactor is not None:
+                sValue = val*scaleFactor
+            else:
+                sValue = val
 
-        if fstr is None:
+            # Use datetime64 to avoid an annoying nanoseconds warning when
+            #   using just regular .to_pydatetime()
+            retObj.timestamp = lastIdx.to_datetime64()
+        except AttributeError:
+            sValue = None
+            retObj.tooOld = True
+            retObj.likelyInvalid = True
+            retObj.timestamp = np.datetime64('1983-04-15T02:00')
+
+        if fstr is None or sValue is None:
             retObj.value = sValue
         else:
             retObj.value = fstr % (sValue)
 
-        # Use datetime64 to avoid an annoying nanoseconds warning when
-        #   using just regular .to_pydatetime()
-        retObj.timestamp = lastIdx.to_datetime64()
 
         if label is not None:
             retObj.label = label
