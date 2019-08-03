@@ -36,8 +36,13 @@ def readNEXRAD(filename):
     """
     """
     print("Reading: %s" % (filename))
-    dat = read_nexrad_archive(filename, linear_interp=False)
-    print("Done reading!")
+    try:
+        dat = read_nexrad_archive(filename, linear_interp=False)
+        print("Done reading!")
+    except ValueError as e:
+        print("%s is likely a bad file!" % (filename))
+        print(str(e))
+        dat = None
 
     return dat
 
@@ -275,7 +280,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 line2 = line2.upper()
 
                 # Black background for top label text
-                #   NOTE: Z order is important! Text should be higher than trect
+                #   NOTE: Z order is important! Text should be higher
+                #         than trect
                 trect = mpatches.Rectangle((0.0, 0.955),
                                            width=1.0, height=0.045,
                                            edgecolor=None, facecolor='black',
