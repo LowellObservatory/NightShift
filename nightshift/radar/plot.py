@@ -181,7 +181,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 # https://www.weather.gov/jetstream/vcp_max
                 vcpmode = radar.metadata['vcp_pattern']
                 plotable = True
-            except KeyError as ke:
+            except (KeyError, AttributeError) as ke:
                 # This usually means a bad file
                 print(str(ke))
                 plotable = False
