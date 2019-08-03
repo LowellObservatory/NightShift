@@ -37,13 +37,13 @@ def filterAndJudge(r):
 
     # These are from other data sources, so get their values too
     temp = helpers.getLast(r, "AirTemp",
-                           compTime=now, nullVal=-1, fstr="%.1f")
+                           compTime=now, nullVal=None, fstr="%.1f")
     dewp = helpers.getLast(r, "DewPoint",
-                           compTime=now, nullVal=-1, fstr="%.1f")
+                           compTime=now, nullVal=None, fstr="%.1f")
     moun = helpers.getLast(r, "MountTemp",
-                           compTime=now, nullVal=-1, fstr="%.1f")
+                           compTime=now, nullVal=None, fstr="%.1f")
     humi = helpers.getLast(r, "Humidity",
-                           compTime=now, nullVal=-1, fstr="%.1f")
+                           compTime=now, nullVal=None, fstr="%.1f")
 
     # Finally done! Now put it all into a list so it can be passed
     #   back a little easier and taken from there
@@ -78,7 +78,7 @@ def makeTable(doc):
     moduleKey = 'weather_TempHumi'
     m = mods[moduleKey]
 
-    print("Serving %s" % (m.title))
+    print("Serving table %s" % (m.title))
 
     # Reuse our old function that arranges the data, then we'll just
     #   downselect to the very last row

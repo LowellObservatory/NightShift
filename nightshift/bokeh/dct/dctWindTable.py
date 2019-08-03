@@ -74,7 +74,7 @@ def makeTable(doc):
     moduleKey = 'weather_TempHumi'
     m = mods[moduleKey]
 
-    print("Serving %s" % (m.title))
+    print("Serving table %s" % (m.title))
 
     # Reuse our old function that arranges the data, then we'll just
     #   downselect to the very last row

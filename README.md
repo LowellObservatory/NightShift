@@ -1,5 +1,7 @@
 # NightShift
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/15ad20635f74475a9e16b219894b483a)](https://app.codacy.com/app/astrobokonon/NightShift?utm_source=github.com&utm_medium=referral&utm_content=LowellObservatory/NightShift&utm_campaign=Badge_Grade_Dashboard)
+
 A collection of modules to be used in at least NightWatch, and probably
 many/most other projects that are in the hopper at the moment.
 
