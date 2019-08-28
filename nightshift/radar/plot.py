@@ -39,7 +39,7 @@ def readNEXRAD(filename):
     try:
         dat = read_nexrad_archive(filename, linear_interp=False)
         print("Done reading!")
-    except ValueError as e:
+    except (ValueError, IndexError) as e:
         print("%s is likely a bad file!" % (filename))
         print(str(e))
         dat = None
