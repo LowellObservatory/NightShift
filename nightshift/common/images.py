@@ -28,7 +28,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 import pkg_resources as pkgr
 
-from . import utils
+from ligmos.utils.common import getFilenameAgeDiff
 
 
 def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
@@ -45,7 +45,7 @@ def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
     images = []
     fnames = []
     for filename in inlist:
-        diff = utils.getFilenameAgeDiff(filename, now, dtfmt=dtfmt)
+        diff = getFilenameAgeDiff(filename, now, dtfmt=dtfmt)
         if diff < maxage:
             images.append(imageio.imread(filename))
             fnames.append(filename)
@@ -122,6 +122,7 @@ def shift_hue(img, color=None, debug=False):
 
     # Convert back to RGB space, and slap our alpha channel back on
     rgba = Image.fromarray(hsv, mode='HSV').convert("RGBA")
+
     rgba.putalpha(origalpha)
 
     return rgba
