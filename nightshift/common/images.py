@@ -28,7 +28,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 import pkg_resources as pkgr
 
-from ligmos.utils.common import getFilenameAgeDiff
+from ligmos.utils.dateutils import getFilenameAgeDiff
 
 
 def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
