@@ -123,7 +123,10 @@ def shift_hue(img, color=None, debug=False):
     # Convert back to RGB space, and slap our alpha channel back on
     rgba = Image.fromarray(hsv, mode='HSV').convert("RGBA")
 
-    rgba.putalpha(origalpha)
+    # Reduce the opacity a little bit. This is annoying to do any other way.
+    nalpha = np.array(origalpha)/1.75
+    nalpha = Image.fromarray(nalpha).convert("L")
+    rgba.putalpha(nalpha)
 
     return rgba
 
