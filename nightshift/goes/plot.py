@@ -342,4 +342,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
             tprev = tend
             i += 1
 
+            # Leak killing. Not sure which one of these is the culprit
+            #   ... but testing implies it's one (or more) or these.
+            del img, dat, crs, fig, ax, line1, line2, ogrid, ngrid, ndat
+
     return i
