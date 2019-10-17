@@ -13,9 +13,8 @@
 
 from __future__ import division, print_function, absolute_import
 
-import glob
-
 import os
+import glob
 from datetime import datetime as dt
 
 import numpy as np
@@ -49,6 +48,9 @@ def G16_ABI_L2_ProjDef(nc):
     #     https://proj4.org/operations/projections/geos.html
     proj_var = nc.variables['goes_imager_projection']
     # print(proj_var)
+
+    # Isolate just the image data for others to use
+    imgdata = nc['CMI'][:]
 
     # Since scanning_angle (radians) = projection_coordinate / h,
     #   the projection coordinates are now easy to get.
@@ -92,12 +94,31 @@ def G16_ABI_L2_ProjDef(nc):
                                            'sweep': satSweep},
                                           nx, ny, extents)
 
-    return old_grid
+    return old_grid, imgdata
 
 
-def crop_image(nc, data, clat, clon, pCoeff=None):
+def crop_image(filename, clat, clon, pCoeff=None):
+    dat = readNC(filename)
+
+    # Pull out the channel/band and other identifiers
+    chan = dat.variables['band_id'][0]
+    plat = "%s (%s)" % (dat.orbital_slot, dat.platform_ID)
+    dprod = dat.title
+
+    # Pull out the time stamp
+    tend = dt.strptime(dat.time_coverage_end, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+    # These will be informational labels on the plot
+    line1 = "%s  %s" % (plat, dprod)
+    line1 = line1.upper()
+
+    # We don't need microseconds shown on this plot
+    tendstr = tend.strftime("%Y-%m-%d  %H:%M:%SZ")
+    line2 = "Band %02d  %s" % (chan, tendstr)
+    line2 = line2.upper()
+
     # Parse/grab the existing projection information
-    old_grid = G16_ABI_L2_ProjDef(nc)
+    old_grid, imgdata = G16_ABI_L2_ProjDef(dat)
 
     latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(clat, clon,
                                                               fudge=0.093)
@@ -139,7 +160,7 @@ def crop_image(nc, data, clat, clon, pCoeff=None):
     # Now that we're guaranteed to have the projection details, actually do it
     pData = pr.kd_tree.get_sample_from_neighbour_info('nn',
                                                       area_def.shape,
-                                                      data,
+                                                      imgdata,
                                                       pCoeff[0],
                                                       pCoeff[1],
                                                       pCoeff[2])
@@ -149,7 +170,9 @@ def crop_image(nc, data, clat, clon, pCoeff=None):
     # pData = pr.kd_tree.resample_nearest(old_grid, data, area_def,
     #                                     radius_of_influence=5000)
 
-    return old_grid, area_def, pData, pCoeff
+    print('Old projection information: {}'.format(old_grid))
+
+    return area_def, pData, pCoeff, tend, line1, line2
 
 
 def getCMap(vmin=160, vmax=330, trans=None):
@@ -208,6 +231,9 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
     # i is the number-of-images processed counter
     i = 0
+    tend = None
+    tprev = None
+
     for each in flist:
         # Remember that the [:-3] on the basename trims off the '.nc' extension
         outpname = "%s/%s.png" % (outloc, os.path.basename(each)[:-3])
@@ -226,16 +252,16 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 save = True
 
         if save is True:
-            dat = readNC(each)
+            # dat = readNC(each)
 
-            # Pull out the channel/band and other identifiers
-            chan = dat.variables['band_id'][0]
-            plat = "%s (%s)" % (dat.orbital_slot, dat.platform_ID)
-            dprod = dat.title
+            # # Pull out the channel/band and other identifiers
+            # chan = dat.variables['band_id'][0]
+            # plat = "%s (%s)" % (dat.orbital_slot, dat.platform_ID)
+            # dprod = dat.title
 
-            # Pull out the time stamp
-            tend = dt.strptime(dat.time_coverage_end,
-                               "%Y-%m-%dT%H:%M:%S.%fZ")
+            # # Pull out the time stamp
+            # tend = dt.strptime(dat.time_coverage_end,
+            #                    "%Y-%m-%dT%H:%M:%S.%fZ")
 
             # If it's our first time through, we definitely need to recalculate
             #   the projection/transformation stuff
@@ -247,15 +273,15 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 if tend.day != tprev.day:
                     pCoeff = None
 
-            # Grab just the image data
-            img = dat['CMI'][:]
-
             # This is the function that actually handles the reprojection
-            ogrid, ngrid, ndat, pCoeff = crop_image(dat, img, cLat, cLon,
-                                                    pCoeff=pCoeff)
+            #   as well as actually reading in the original file
+            ngrid, ndat, pCoeff, tend, line1, line2 = crop_image(each,
+                                                                 cLat, cLon,
+                                                                 pCoeff=pCoeff)
 
-            print('Old projection information: {}'.format(ogrid))
             print('NEW projection information: {}'.format(ngrid))
+
+            # COMMENT START HERE
 
             # Get the new projection/transformation info for the plot axes
             crs = ngrid.to_cartopy_crs()
@@ -297,17 +323,6 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
             plt.imshow(ndat, transform=crs, extent=crs.bounds, origin='upper',
                        vmin=160., vmax=330., interpolation='none',
                        cmap=cmap)
-            # plt.colorbar()
-
-            # Add the informational bar at the top, using info directly
-            #   from the original datafiles that we opened at the top
-            line1 = "%s  %s" % (plat, dprod)
-            line1 = line1.upper()
-
-            # We don't need microseconds shown on this plot
-            tendstr = tend.strftime("%Y-%m-%d  %H:%M:%SZ")
-            line2 = "Band %02d  %s" % (chan, tendstr)
-            line2 = line2.upper()
 
             # Black background for top label text
             #   NOTE: Z order is important! Text should be higher than trect
@@ -317,6 +332,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                                        transform=ax.transAxes)
             ax.add_patch(trect)
 
+            # Add the informational bar at the top, using info directly
+            #   from the original datafiles that we opened at the top
             # Line 1
             plt.annotate(line1, (0.5, 0.985), xycoords='axes fraction',
                          fontfamily='monospace',
@@ -337,6 +354,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
             print("Saved as %s." % (outpname))
             plt.close()
 
+            # COMMENT END HERE
+
             # Make sure to save the current timestamp for comparison the
             #   next time through the loop!
             tprev = tend
@@ -344,6 +363,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
             # Leak killing. Not sure which one of these is the culprit
             #   ... but testing implies it's one (or more) or these.
-            del img, dat, crs, fig, ax, line1, line2, ogrid, ngrid, ndat
+            del crs, fig, ax, line1, line2, ngrid, ndat
+            # del dat, ngrid, ndat
 
     return i
