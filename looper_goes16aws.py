@@ -182,7 +182,7 @@ if __name__ == "__main__":
     #   don't have much in the way of configuration
     creds = confparsers.rawParser(awsconf)
 
-    main(outdir, creds, sleep=10.,
+    main(outdir, creds, sleep=90.,
          forceDown=forceDownloads, forceRegen=forceRegenPlot)
 
     print("Exiting!")
