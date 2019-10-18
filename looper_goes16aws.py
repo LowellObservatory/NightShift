@@ -13,6 +13,9 @@
 
 from __future__ import division, print_function, absolute_import
 
+import gc
+import memory_profiler as mprof
+
 import os
 import time
 from datetime import datetime as dt
@@ -154,6 +157,12 @@ def main(outdir, creds, sleep=150., keephours=24.,
         utils.copyStaticFilenames(curpngs, lout,
                                   staticname, nstaticfiles,
                                   errorAge=2.25, errorStamp=True)
+
+        print("GARBAGE UPDATE")
+        print(gc.get_stats())
+        print("MEMORY UPDATE")
+        print(mprof.memory_usage(timestamps=True, include_children=True,
+                                 multiprocess=True))
 
         print("Sleeping for %03d seconds..." % (sleep))
         time.sleep(sleep)
