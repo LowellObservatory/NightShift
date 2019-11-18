@@ -135,8 +135,8 @@ def configServer():
     dctWindTableFunc = FunctionHandler(dctWindTable.makeTable)
     dctWindTableApp = Application(dctWindTableFunc)
 
-    lmiTempFunc = FunctionHandler(instrumentTelem.make_plot)
-    lmiTempApp = Application(lmiTempFunc)
+    #lmiTempFunc = FunctionHandler(instrumentTelem.make_plot)
+    #lmiTempApp = Application(lmiTempFunc)
 
     facsumTCSFunc = FunctionHandler(facsumTCS.makeFacSum)
     facsumTCSApp = Application(facsumTCSFunc)
@@ -148,7 +148,7 @@ def configServer():
             '/dctweathertable': dctWeatherTableApp,
             '/dctwind': dctWindApp,
             '/dctwindtable': dctWindTableApp,
-            '/lmitemps': lmiTempApp,
+            #'/lmitemps': lmiTempApp,
             '/facsum_tcs': facsumTCSApp,
             '/facsum_lpi': facsumLPIApp}
 
