@@ -15,15 +15,11 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
-import os
-import subprocess as subp
 from datetime import datetime as dt
 
 import numpy as np
 import pkg_resources as pkgr
 from PIL import Image, ImageDraw, ImageFont
-
-from ligmos.utils.dateutils import getFilenameAgeDiff
 
 
 def shift_hue(img, color=None, debug=False):
