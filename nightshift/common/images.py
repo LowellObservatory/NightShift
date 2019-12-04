@@ -20,76 +20,10 @@ import subprocess as subp
 from datetime import datetime as dt
 
 import numpy as np
-
-import imageio
-import imageio.core.util
-
+import pkg_resources as pkgr
 from PIL import Image, ImageDraw, ImageFont
 
-import pkg_resources as pkgr
-
 from ligmos.utils.dateutils import getFilenameAgeDiff
-
-
-def movingPictures(inlist, outname, now, videoage=6., dtfmt="%Y%j%H%M%S%f"):
-    """
-    processing is determined by the file extension; it only knows about
-    'gif' and 'mp4' at present!
-
-    'videoage' is in hours
-    """
-    # Make sure 'inlist' is actually a list; needed because we index it
-    inlist = list(inlist)
-
-    maxage = videoage * 60. * 60.
-    images = []
-    fnames = []
-    for filename in inlist:
-        diff = getFilenameAgeDiff(filename, now, dtfmt=dtfmt)
-        if diff < maxage:
-            images.append(imageio.imread(filename))
-            fnames.append(filename)
-
-    print("%d files found within %d h of now for the moving pictures" %
-          (len(images), videoage))
-
-    if len(images) < 2:
-        # This means we didn't actually find any images within our window!
-        #   Therefore we should just give up and go home.
-        print("Not enough files found! Aborting.")
-        return
-
-    # Buffer the last few frames to make it not loop in an annoying way
-    images += [images[-1]]*13
-    fnames += [fnames[-1]]*13
-
-    if outname.lower().endswith("mp4"):
-        print("Starting MP4 creation...")
-        try:
-            # NEED this because imageio is a bit silly at the moment, and
-            #   macro_block_size will destroy our logger.  Once
-            #   https://github.com/imageio/imageio/issues/376 is closed
-            #   this can be revisited.
-            # As of 20181128, imageio FFMPEG is pretty useless for this.
-            # imageio.mimwrite(outname, images, quality=7)
-
-            # 0.1 sec frame time ==
-            vfopts = "fps=10,format=yuv420p,pad=ceil(iw/2)*2:ceil(ih/2)*2"
-            ffmpegcall = ["ffmpeg", "-y", "-pattern_type", "glob",
-                          "-i", os.path.dirname(fnames[0]) + "/*.png",
-                          "-c:v", "libx264",
-                          "-vf", vfopts,
-                          outname]
-            subp.check_call(ffmpegcall)
-            print("MP4 saved as %s" % (outname))
-        except subp.CalledProcessError as err:
-            print("FFMPEG failed!")
-            print(err.output)
-    elif outname.lower().endswith("gif"):
-        print("Starting GIF creation...")
-        imageio.mimwrite(outname, images, loop=0, duration=0.100,
-                         palettesize=256)
-        print("GIF saved as %s" % (outname))
 
 
 def shift_hue(img, color=None, debug=False):
