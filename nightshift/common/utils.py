@@ -53,6 +53,8 @@ def copyStaticFilenames(cpng, lout, staticname, nstaticfiles,
                 # Check to see if our file's age is too old, and if so,
                 #   apply the error stamp
                 if cages[findex] >= errorAge:
+                    print("%s is too old (%f)! Stamping it." % (lname,
+                                                                cages[findex]))
                     images.applyErrorLogo(clist[findex], lname)
                 else:
                     copyfile(clist[findex], lname)
