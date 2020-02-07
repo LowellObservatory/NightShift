@@ -133,7 +133,7 @@ def main(outdir, creds, sleep=150., keephours=24.,
         # This will stamp files that are > 4 hours old with a warning
         utils.copyStaticFilenames(curpngs, lout,
                                   staticname, nstaticfiles,
-                                  errorAge=3.25, errorStamp=True)
+                                  errorAge=3.5, errorStamp=True)
 
         print("Sleeping for %03d seconds..." % (sleep))
         time.sleep(sleep)
