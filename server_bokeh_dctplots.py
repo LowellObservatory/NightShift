@@ -20,6 +20,8 @@ from collections import OrderedDict
 
 import pkg_resources as pkgr
 
+from ligmos.utils import ephemera
+
 from bokeh.themes import Theme
 from bokeh.util import logconfig
 from bokeh.plotting import curdoc
@@ -31,14 +33,13 @@ from tornado.ioloop import PeriodicCallback
 
 import nightshift.bokeh.confHerder as ch
 import nightshift.bokeh.dbQueries as dbq
-import nightshift.bokeh.ephemera as ephemera
 
 import nightshift.bokeh.plotting.colorWheelies as cwheels
 
-from nightshift.bokeh.dct import facsumLPI, facsumTCS
-from nightshift.bokeh.dct import dctWeather, dctWeatherTable
-from nightshift.bokeh.dct import dctWind, dctWindTable
-from nightshift.bokeh.dct import instrumentTelem
+from nightshift.bokeh.ldt import facsumLPI, facsumTCS
+from nightshift.bokeh.ldt import ldtWeather, ldtWeatherTable
+from nightshift.bokeh.ldt import ldtWind, ldtWindTable
+from nightshift.bokeh.ldt import instrumentTelem
 
 
 # Make sure all the endpoints work from the same base document.
@@ -56,7 +57,7 @@ class masterPlotState():
         self.timestamp = None
 
 
-def batchQuery(plotState=None, site='dct', debug=False):
+def batchQuery(plotState=None, site='ldt', debug=False):
     """
     It's important to do all of these queries en-masse, otherwise the results
     could end up being confusing - one plot's data could differ by
@@ -99,7 +100,6 @@ def batchQuery(plotState=None, site='dct', debug=False):
     # Translate all those times and angles into a dataframe that we can
     #   then stuff into our hiding spot with all the other things
     edf = obsSite.toPandasDataFrame()
-
     qdata.update({'ephemera': edf})
 
     print("Data stored at %s" % (dts))
@@ -125,20 +125,17 @@ def configServer():
     """
     """
     # LOOP OVER THE CONFIG TO MAKE THIS
-    dctWeatherFunc = FunctionHandler(dctWeather.make_plot)
-    dctWeatherApp = Application(dctWeatherFunc)
+    ldtWeatherFunc = FunctionHandler(ldtWeather.make_plot)
+    ldtWeatherApp = Application(ldtWeatherFunc)
 
-    dctWeatherTableFunc = FunctionHandler(dctWeatherTable.makeTable)
-    dctWeatherTableApp = Application(dctWeatherTableFunc)
+    ldtWeatherTableFunc = FunctionHandler(ldtWeatherTable.makeTable)
+    ldtWeatherTableApp = Application(ldtWeatherTableFunc)
 
-    dctWindFunc = FunctionHandler(dctWind.make_plot)
-    dctWindApp = Application(dctWindFunc)
+    ldtWindFunc = FunctionHandler(ldtWind.make_plot)
+    ldtWindApp = Application(ldtWindFunc)
 
-    dctWindTableFunc = FunctionHandler(dctWindTable.makeTable)
-    dctWindTableApp = Application(dctWindTableFunc)
-
-    #lmiTempFunc = FunctionHandler(instrumentTelem.make_plot)
-    #lmiTempApp = Application(lmiTempFunc)
+    ldtWindTableFunc = FunctionHandler(ldtWindTable.makeTable)
+    ldtWindTableApp = Application(ldtWindTableFunc)
 
     facsumTCSFunc = FunctionHandler(facsumTCS.makeFacSum)
     facsumTCSApp = Application(facsumTCSFunc)
@@ -146,11 +143,10 @@ def configServer():
     facsumLPIFunc = FunctionHandler(facsumLPI.makeFacSum)
     facsumLPIApp = Application(facsumLPIFunc)
 
-    apps = {'/dctweather': dctWeatherApp,
-            '/dctweathertable': dctWeatherTableApp,
-            '/dctwind': dctWindApp,
-            '/dctwindtable': dctWindTableApp,
-            #'/lmitemps': lmiTempApp,
+    apps = {'/ldtweather': ldtWeatherApp,
+            '/ldtweathertable': ldtWeatherTableApp,
+            '/ldtwind': ldtWindApp,
+            '/ldtwindtable': ldtWindTableApp,
             '/facsum_tcs': facsumTCSApp,
             '/facsum_lpi': facsumLPIApp}
 

@@ -36,7 +36,7 @@ def dataGatherer(m, qdata, timeFilter=None, fillNull=True, debug=True):
         pdata.update({qtag: qdata[qtag]})
 
     # Get the keys that define the input dataset
-    r = pdata['q_dctweather']
+    r = pdata['q_ldtweather']
     r2 = pdata['q_mounttemp']
 
     # Get rid of series that won't be appearing in this plot
@@ -119,7 +119,7 @@ def make_plot(doc):
     r = dataGatherer(m, qdata)
 
     # A dict of helpful plot labels
-    ldict = {'title': "DCT Weather Information",
+    ldict = {'title': "LDT Weather Information",
              'xlabel': "Time (UTC)",
              'y1label': "Temperature (C)",
              'y2label': "Humidity (%)"}

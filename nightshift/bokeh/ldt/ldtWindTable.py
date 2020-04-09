@@ -22,7 +22,7 @@ import numpy as np
 
 from bokeh.plotting import ColumnDataSource
 
-from . import dctWeather
+from . import ldtWind
 from ..plotting import helpers
 from ..plotting import tables as tabs
 
@@ -36,18 +36,14 @@ def filterAndJudge(r):
     now = np.datetime64(dt.datetime.utcnow())
 
     # These are from other data sources, so get their values too
-    temp = helpers.getLast(r, "AirTemp",
-                           compTime=now, nullVal=None, fstr="%.1f")
-    dewp = helpers.getLast(r, "DewPoint",
-                           compTime=now, nullVal=None, fstr="%.1f")
-    moun = helpers.getLast(r, "MountTemp",
-                           compTime=now, nullVal=None, fstr="%.1f")
-    humi = helpers.getLast(r, "Humidity",
-                           compTime=now, nullVal=None, fstr="%.1f")
+    wind = helpers.getLast(r, "WindSpeed2MinAvg",
+                           compTime=now, nullVal=-1, fstr="%.1f")
+    gust = helpers.getLast(r, "WindSpeed60MinMax",
+                           compTime=now, nullVal=-1, fstr="%.1f")
 
     # Finally done! Now put it all into a list so it can be passed
     #   back a little easier and taken from there
-    tableDat = [temp, dewp, moun, humi]
+    tableDat = [wind, gust]
 
     values = []
     labels = []
@@ -82,13 +78,13 @@ def makeTable(doc):
 
     # Reuse our old function that arranges the data, then we'll just
     #   downselect to the very last row
-    r = dctWeather.dataGatherer(m, qdata)
+    r = ldtWind.dataGatherer(m, qdata)
     cds = filterAndJudge(r)
 
     dtab, nRows = tabs.setupTable(cds)
 
-    dtab.width = 250
-    dtab.height = 125
+    dtab.width = 300
+    dtab.height = 75
     dtab.margin = 0
     dtab.header_row = False
 
@@ -110,7 +106,7 @@ def makeTable(doc):
         print("Data were queried %f seconds ago (%s)" % (tdiff, timeUpdate))
 
         # Let's just be dumb and replace everything all at once
-        nr = dctWeather.dataGatherer(m, qdata)
+        nr = ldtWind.dataGatherer(m, qdata)
         ncds = filterAndJudge(nr)
 
         cds.stream(ncds.data, rollover=nRows)

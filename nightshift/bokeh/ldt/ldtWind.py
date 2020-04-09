@@ -34,7 +34,7 @@ def dataGatherer(m, qdata, timeFilter=None, fillNull=True, debug=True):
         pdata.update({qtag: qdata[qtag]})
 
     # Get the keys that define the input dataset
-    r = pdata['q_dctweather']
+    r = pdata['q_ldtweather']
 
     # Get rid of series that won't be appearing in this plot
     r = r.drop("AirTemp", axis=1)
@@ -109,7 +109,7 @@ def make_plot(doc):
     r = dataGatherer(m, qdata)
 
     # A dict of helpful plot labels
-    ldict = {'title': "DCT Weather Information",
+    ldict = {'title': "LDT Wind Speed",
              'xlabel': "Time (UTC)",
              'y1label': "Wind Speed (m/s)"}
 
