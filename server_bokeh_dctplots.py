@@ -14,6 +14,7 @@
 from __future__ import division, print_function, absolute_import
 
 import logging
+from typing import Optional
 from datetime import datetime as dt
 from collections import OrderedDict
 
@@ -206,6 +207,9 @@ if __name__ == "__main__":
     # Attach the handler to the logger.
     #   Cribbed from bokeh.util.logconfig
     level = 'DEBUG'
+    default_handler: Optional[logging.Handler] = None
+    bokeh_logger.removeHandler(default_handler)
+
     bokeh_logger = logging.getLogger('bokeh')
     bokeh_logger.setLevel(level)
     bokeh_logger.addHandler(handler)
