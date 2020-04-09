@@ -39,7 +39,6 @@ import nightshift.bokeh.plotting.colorWheelies as cwheels
 from nightshift.bokeh.ldt import facsumLPI, facsumTCS
 from nightshift.bokeh.ldt import ldtWeather, ldtWeatherTable
 from nightshift.bokeh.ldt import ldtWind, ldtWindTable
-from nightshift.bokeh.ldt import instrumentTelem
 
 
 # Make sure all the endpoints work from the same base document.

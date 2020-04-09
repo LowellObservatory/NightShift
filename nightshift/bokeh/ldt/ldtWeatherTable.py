@@ -16,7 +16,6 @@ Further description.
 from __future__ import division, print_function, absolute_import
 
 import datetime as dt
-from collections import OrderedDict
 
 import numpy as np
 
