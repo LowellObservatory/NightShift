@@ -208,9 +208,8 @@ if __name__ == "__main__":
     #   Cribbed from bokeh.util.logconfig
     level = 'DEBUG'
     default_handler: Optional[logging.Handler] = None
-    bokeh_logger.removeHandler(default_handler)
-
     bokeh_logger = logging.getLogger('bokeh')
+    bokeh_logger.removeHandler(default_handler)
     bokeh_logger.setLevel(level)
     bokeh_logger.addHandler(handler)
     bokeh_logger.propagate = True
