@@ -205,7 +205,7 @@ if __name__ == "__main__":
     handler.setFormatter(formatter)
     # Attach the handler to the logger.
     #   Cribbed from bokeh.util.logconfig
-    level = 'debug'
+    level = 'DEBUG'
     bokeh_logger = logging.getLogger('bokeh')
     bokeh_logger.setLevel(level)
     bokeh_logger.addHandler(handler)
