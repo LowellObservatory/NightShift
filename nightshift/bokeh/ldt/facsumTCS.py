@@ -150,9 +150,9 @@ def dataGatherer(moduleKey, mods, qdata):
     #                         compTime=now)
 
     sunalt = helpers.getLast(e, "sun_dms", label='Sun Altitude',
-                             compTime=now, fstr="%.2f")
+                             compTime=now, fstr="%s")
     moonalt = helpers.getLast(e, "moon_dms", label='Moon Altitude',
-                              compTime=now, fstr="%.2f")
+                              compTime=now, fstr="%s")
     moonphase = helpers.getLast(e, "moonphase", scaleFactor=100.,
                                 label='Moon Phase',
                                 compTime=now, fstr="%.2f")

@@ -20,16 +20,15 @@ from collections import OrderedDict
 
 import pkg_resources as pkgr
 
-from ligmos.utils import ephemera
-
 from bokeh.themes import Theme
-from bokeh.util import logconfig
 from bokeh.plotting import curdoc
 from bokeh.server.server import Server
 from bokeh.application import Application
 from bokeh.application.handlers.function import FunctionHandler
 
 from tornado.ioloop import PeriodicCallback
+
+from ligmos.utils import ephemera
 
 import nightshift.bokeh.confHerder as ch
 import nightshift.bokeh.dbQueries as dbq
