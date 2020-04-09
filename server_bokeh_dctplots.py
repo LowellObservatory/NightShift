@@ -13,6 +13,7 @@
 
 from __future__ import division, print_function, absolute_import
 
+import logging
 from datetime import datetime as dt
 from collections import OrderedDict
 
@@ -189,12 +190,30 @@ if __name__ == "__main__":
     dset, _ = cwheels.getColors()
 
     # Set up logging to a file
-    # TODO: Just use my standard ligmos logger to grab everything?
-    #   Initial attempt failed because python logging is really weird
+    # We need to make a handler that rotates ourselves, and then attach it.
+    #   Cribbed from ligmos.utils.logs.setup_logging()
     print("Sending the output to the file")
-    logconfig.basicConfig(level='DEBUG',
-                          format='%(asctime)s %(levelname)-8s %(message)s',
-                          filename='./outputs/logs/bokehmcbokehface.log')
+    logName = './outputs/logs/bokehmcbokehface.log'
+    nLogs = 10
+    handler = logging.handlers.TimedRotatingFileHandler(logName,
+                                                        when="midnight",
+                                                        utc=True,
+                                                        backupCount=nLogs)
+    # Format each log message like this
+    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+    # Attach the formatter to the handler
+    handler.setFormatter(formatter)
+    # Attach the handler to the logger.
+    #   Cribbed from bokeh.util.logconfig
+    level = 'debug'
+    bokeh_logger = logging.getLogger('bokeh')
+    bokeh_logger.setLevel(level)
+    bokeh_logger.addHandler(handler)
+    bokeh_logger.propagate = False
+
+    # logconfig.basicConfig(level='DEBUG',
+    #                       format='%(asctime)s %(levelname)-8s %(message)s',
+    #                       filename='./outputs/logs/bokehmcbokehface.log')
 
     # Now pack it all into a nice class that can be added to the
     #   main doc to be inherited by each plot that we make
