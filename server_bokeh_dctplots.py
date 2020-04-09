@@ -209,7 +209,7 @@ if __name__ == "__main__":
     bokeh_logger = logging.getLogger('bokeh')
     bokeh_logger.setLevel(level)
     bokeh_logger.addHandler(handler)
-    bokeh_logger.propagate = False
+    bokeh_logger.propagate = True
 
     # logconfig.basicConfig(level='DEBUG',
     #                       format='%(asctime)s %(levelname)-8s %(message)s',
