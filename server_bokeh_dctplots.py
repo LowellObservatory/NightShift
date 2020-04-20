@@ -74,17 +74,12 @@ def batchQuery(plotState=None, site='ldt', debug=False):
         quer = plotState.queries
 
     for iq in quer.keys():
-        q = quer[iq]
-
+        # q = quer[iq]
         # Should not only pull this out of the loop, but change it to
         #   use 'bind_params' for extra safety!
-        query = dbq.queryConstructor(q, dtime=q.rangehours, debug=debug)
+        # query = dbq.queryConstructor(q, dtime=q.rangehours, debug=debug)
+        td = dbq.getResultsDataFrame(quer[iq], debug=debug)
 
-        td = dbq.getResultsDataFrame(q.database.host, query,
-                                     q.database.port,
-                                     dbuser=q.database.user,
-                                     dbpass=q.database.password,
-                                     dbname=q.tablename)
         qdata.update({iq: td})
 
     dts = dt.utcnow()
@@ -207,10 +202,6 @@ if __name__ == "__main__":
     bokeh_logger.setLevel(level)
     bokeh_logger.addHandler(handler)
     bokeh_logger.propagate = True
-
-    # logconfig.basicConfig(level='DEBUG',
-    #                       format='%(asctime)s %(levelname)-8s %(message)s',
-    #                       filename='./outputs/logs/bokehmcbokehface.log')
 
     # Now pack it all into a nice class that can be added to the
     #   main doc to be inherited by each plot that we make

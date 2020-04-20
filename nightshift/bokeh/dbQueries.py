@@ -18,35 +18,35 @@ from __future__ import division, print_function, absolute_import
 from influxdb import DataFrameClient
 
 
-def queryConstructor(dbinfo, dtime=48, debug=False):
+def queryConstructor(dbq, debug=False):
     """
-    dbinfo is type databaseQuery, which includes databaseConfig as
-    dbinfo.db.  More info in 'confHerder'.
+    dbq is type databaseQuery, which includes databaseConfig as
+    dbq.db.  More info in 'confHerder'.
 
     dtime is time from present (in hours) to query back
 
     Allows grouping of the results by a SINGLE tag with multiple values.
     No checking if you want all values for a given tag, so be explicit for now.
     """
-    if isinstance(dtime, str):
+    if isinstance(dbq.rangehours, str):
         try:
-            dtime = int(dtime)
+            dtime = int(dbq.rangehours)
         except ValueError:
-            print("Can't convert %s to int!" % (dtime))
+            print("Can't convert %s to int!" % (dbq.rangehours))
             dtime = 1
 
-    if dbinfo.database.type.lower() == 'influxdb':
+    if dbq.database.type.lower() == 'influxdb':
         if debug is True:
-            print("Searching for %s in %s.%s on %s:%s" % (dbinfo.fields,
-                                                          dbinfo.tablename,
-                                                          dbinfo.metricname,
-                                                          dbinfo.database.host,
-                                                          dbinfo.database.port))
+            print("Searching for %s in %s.%s on %s:%s" % (dbq.fields,
+                                                          dbq.tablename,
+                                                          dbq.metricname,
+                                                          dbq.database.host,
+                                                          dbq.database.port))
 
         # Some renames since this was adapted from an earlier version
-        tagnames = dbinfo.tagnames
+        tagnames = dbq.tagnames
         if tagnames is not None:
-            tagvals = dbinfo.tagvals
+            tagvals = dbq.tagvals
         else:
             tagvals = []
 
@@ -54,30 +54,30 @@ def queryConstructor(dbinfo, dtime=48, debug=False):
         #   this can't run amok.  For now, make sure the user has
         #   only READ ONLY privileges to the database in question!!!
         query = 'SELECT'
-        if isinstance(dbinfo.fields, list):
-            for i, each in enumerate(dbinfo.fields):
+        if isinstance(dbq.fields, list):
+            for i, each in enumerate(dbq.fields):
                 # Catch possible fn/dn mismatch
                 try:
                     query += ' "%s" AS "%s"' % (each.strip(),
-                                                dbinfo.fieldlabels[i])
+                                                dbq.fieldlabels[i])
                 except IndexError:
                     query += ' "%s"' % (each.strip())
-                if i != len(dbinfo.fields)-1:
+                if i != len(dbq.fields)-1:
                     query += ','
                 else:
                     query += ' '
         else:
-            if dbinfo.fieldlabels is not None:
-                query += ' "%s" AS "%s" ' % (dbinfo.fields, dbinfo.fieldlabels)
+            if dbq.fieldlabels is not None:
+                query += ' "%s" AS "%s" ' % (dbq.fields, dbq.fieldlabels)
             else:
-                query += ' "%s" ' % (dbinfo.fields)
+                query += ' "%s" ' % (dbq.fields)
 
-        query += 'FROM "%s"' % (dbinfo.metricname)
+        query += 'FROM "%s"' % (dbq.metricname)
         query += ' WHERE time > now() - %02dh' % (dtime)
 
         if tagvals != []:
             query += ' AND ('
-            if isinstance(dbinfo.tagvals, list):
+            if isinstance(dbq.tagvals, list):
                 for i, each in enumerate(tagvals):
                     query += '"%s"=\'%s\'' % (tagnames, each.strip())
 
@@ -92,19 +92,33 @@ def queryConstructor(dbinfo, dtime=48, debug=False):
         return query
 
 
-def getResultsDataFrame(host, querystr, port=8086,
-                        dbuser='rand', dbpass='pass',
-                        dbname='DBname'):
+def getResultsDataFrame(query, debug=False):
     """
     Attempts to distinguish queries that have results grouped by a tag
     vs. those which are just of multiple fields. May be buggy still.
     """
-    idfc = DataFrameClient(host, port, dbuser, dbpass, dbname)
+    querystr = queryConstructor(query, debug=debug)
+
+    # Line length/clarity control
+    db = query.database
+
+    idfc = DataFrameClient(host=db.host, port=db.port,
+                           username=db.user,
+                           password=db.password,
+                           database=query.tablename)
 
     results = idfc.query(querystr)
 
-    betterResults = {}
     # results is a dict of dataframes, but it's a goddamn mess. Clean it up.
+    betterResults = {}
+
+    # Get the names of the expected columns
+    expectedCols = query.fieldlabels
+
+    # If all went well, results.keys() should be the same as query.metricname
+    #   If I do this right I can hopefully ditch the first for loop below?
+    rframe = results[query.metricname]
+
     for rkey in results.keys():
         # If you had a tag that you "GROUP BY" in the query, you'll now have
         #   a tuple of the metric name and the tag + value pair. If you had
@@ -118,6 +132,15 @@ def getResultsDataFrame(host, querystr, port=8086,
             betterResults.update({tval: dat})
         elif isinstance(rkey, str):
             betterResults = results[rkey]
+
+    # Check to make sure all of the expected columns are in our frame
+    cols = betterResults.columns.to_list()
+    for ecol in expectedCols:
+        if ecol not in cols:
+            print("Missing column %s in result set!" % (ecol))
+            betterResults[ecol] = None
+        else:
+            print("Found column %s in result set." % (ecol))
 
     # This is at least a little better
     return betterResults
