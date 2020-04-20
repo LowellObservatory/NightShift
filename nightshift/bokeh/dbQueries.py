@@ -15,6 +15,7 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
+import pandas as pd
 from influxdb import DataFrameClient
 
 
@@ -101,7 +102,6 @@ def getResultsDataFrame(query, debug=False):
 
     # Line length/clarity control
     db = query.database
-
     idfc = DataFrameClient(host=db.host, port=db.port,
                            username=db.user,
                            password=db.password,
@@ -115,32 +115,46 @@ def getResultsDataFrame(query, debug=False):
     # Get the names of the expected columns
     expectedCols = query.fieldlabels
 
-    # If all went well, results.keys() should be the same as query.metricname
-    #   If I do this right I can hopefully ditch the first for loop below?
-    rframe = results[query.metricname]
+    if results != {}:
+        # If all went well, results.keys() should be the same as
+        #   query.metricname; if I do this right I can hopefully
+        #   ditch the first for loop below?
+        rframe = results[query.metricname]
 
-    for rkey in results.keys():
-        # If you had a tag that you "GROUP BY" in the query, you'll now have
-        #   a tuple of the metric name and the tag + value pair. If you had
-        #   no tag to group by, you'll have just the flat result.
-        if isinstance(rkey, tuple):
-            # Someone tell me again why Pandas is so great?
-            #   I suppose it could be jankiness in influxdb-python?
-            #   This magic 'tval' line below is seriously dumb though.
-            tval = rkey[1][0][1]
-            dat = results[rkey]
-            betterResults.update({tval: dat})
-        elif isinstance(rkey, str):
-            betterResults = results[rkey]
+        for rkey in results.keys():
+            # If you had a tag that you "GROUP BY" in the query, you'll now
+            #   have a tuple of the metric name and the tag + value pair.
+            #   If you had no tag to group by, you'll have just the
+            #   flat result.
+            if isinstance(rkey, tuple):
+                # Someone tell me again why Pandas is so great?
+                #   I suppose it could be jankiness in influxdb-python?
+                #   This magic 'tval' line below is seriously dumb though.
+                tval = rkey[1][0][1]
+                dat = results[rkey]
+                betterResults.update({tval: dat})
+            elif isinstance(rkey, str):
+                betterResults = results[rkey]
 
-    # Check to make sure all of the expected columns are in our frame
-    cols = betterResults.columns.to_list()
-    for ecol in expectedCols:
-        if ecol not in cols:
-            print("Missing column %s in result set!" % (ecol))
-            betterResults[ecol] = None
-        else:
-            print("Found column %s in result set." % (ecol))
+        # Check to make sure all of the expected columns are in our frame
+        cols = betterResults.columns.to_list()
+        for ecol in expectedCols:
+            if ecol not in cols:
+                print("Missing column %s in result set!" % (ecol))
+                betterResults[ecol] = None
+            else:
+                print("Found column %s in result set." % (ecol))
+    else:
+        # This means that the query literally returned nothing at all, so
+        #   we have to make the expected DataFrame ourselves so others
+        #   don't crash outright
+        print("Query returned no results! Is that expected?")
+        betterResults = pd.DataFrame()
+        if isinstance(expectedCols, str):
+            betterResults[expectedCols] = None
+        elif isinstance(expectedCols, list):
+            for ecol in expectedCols:
+                betterResults[ecol] = None
 
     # This is at least a little better
     return betterResults
