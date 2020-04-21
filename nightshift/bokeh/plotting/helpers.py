@@ -191,7 +191,7 @@ def getLast(p1, fieldname, label=None, lastIdx=None, compTime=None,
             # Use datetime64 to avoid an annoying nanoseconds warning when
             #   using just regular .to_pydatetime()
             retObj.timestamp = lastIdx.to_datetime64()
-        except TypeError, AttributeError:
+        except (TypeError, AttributeError):
             # The TypeError catch will get triggered on queries where there
             #   is no data and I fudged a returned DataFrame
             sValue = None
