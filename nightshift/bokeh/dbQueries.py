@@ -164,6 +164,17 @@ def getResultsDataFrame(query, debug=False):
         if isinstance(expectedCols, str):
             # NEED a dict here with a timestamp as key so the Dataframe
             #   index is of the right type later on
+            # NOTE: This is broke as shit. Like, totally FUBAR.
+            # FIX THIS HERE!!!
+            # Later on, the timestamp gets interpreted as an actual value
+            #   and all sorts of things blow up because of it.  In a data
+            #   stream/update, I see the following:
+            #
+            # {'AirTemp': 8.722222222222225,
+            #  'Humidity': 41.0,
+            #  'DewPoint': -3.722222222222222,
+            #  'MountTemp': numpy.datetime64('1984-04-15T02:00:00.000000000')
+            #  }
             betterResults[expectedCols] = {then: np.nan}
         elif isinstance(expectedCols, list):
             for ecol in expectedCols:

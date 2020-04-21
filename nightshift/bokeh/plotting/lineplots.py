@@ -294,6 +294,7 @@ def newDataCallback(cds, cols, nf, lastTimedt, y1lim):
         for col in cols:
             fillVal = helpers.getLastVal(cds, col)
             cfills.update({col: fillVal})
+        print(cfills)
 
         # Fill in our column holes. If there are *multiple* temporal holes,
         #   it'll look bonkers because there's only one fill value.
