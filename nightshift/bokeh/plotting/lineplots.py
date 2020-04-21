@@ -19,8 +19,8 @@ import numpy as np
 import pandas as pd
 
 from bokeh.plotting import figure, ColumnDataSource
-from bokeh.models import Span, DataRange1d, LinearAxis,\
-                         Legend, LegendItem, HoverTool
+from bokeh.models import Span, DataRange1d, LinearAxis
+from bokeh.models import Legend, LegendItem, HoverTool
 
 from . import helpers
 
@@ -243,22 +243,21 @@ def plotLineWithPoints(p, cds, sname, color,
         hcolor = '#E24D42'
 
     if yrname is None:
-        l = p.step('index', sname, line_width=2, source=cds, mode='after',
-                   color=color, name=sname)
-        s = p.scatter('index', sname, size=8, source=cds,
-                      color=color, name=sname,
-                      alpha=0., hover_alpha=1., hover_color=hcolor)
+        ln = p.step('index', sname, line_width=2, source=cds, mode='after',
+                    color=color, name=sname)
+        sc = p.scatter('index', sname, size=8, source=cds,
+                       color=color, name=sname,
+                       alpha=0., hover_alpha=1., hover_color=hcolor)
     else:
-        l = p.step('index', sname, line_width=2, source=cds, mode='after',
-                   y_range_name=yrname,
-                   color=color, name=sname)
-        s = p.scatter('index', sname, size=8, source=cds,
-                      y_range_name=yrname,
-                      color=color, name=sname,
-                      alpha=0., hover_alpha=1., hover_color=hcolor)
+        ln = p.step('index', sname, line_width=2, source=cds, mode='after',
+                    y_range_name=yrname,
+                    color=color, name=sname)
+        sc = p.scatter('index', sname, size=8, source=cds,
+                       y_range_name=yrname,
+                       color=color, name=sname,
+                       alpha=0., hover_alpha=1., hover_color=hcolor)
 
-    return l, s
-
+    return ln, sc
 
 
 def createSunAnnotations(qdata):
