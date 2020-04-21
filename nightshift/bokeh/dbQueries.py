@@ -15,7 +15,9 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
-import numpy as np
+import datetime as dt
+
+import pytz
 import pandas as pd
 from influxdb import DataFrameClient
 
@@ -152,7 +154,9 @@ def getResultsDataFrame(query, debug=False):
         #   dataframe is of type DateTimeIndex as well so future screening
         #   doesn't barf due to missing methods.
         print("Query returned no results!")
-        then = np.datetime64('1983-04-15T02:00')
+
+        then = dt.datetime.strptime("1984-04-15T02:00 -0500",
+                                    "%Y-%m-%dT%H:%M %z")
 
         betterResults = pd.DataFrame()
 
