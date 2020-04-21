@@ -15,9 +15,7 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
-import datetime as dt
-
-import pytz
+import numpy as np
 import pandas as pd
 from influxdb import DataFrameClient
 
@@ -154,18 +152,17 @@ def getResultsDataFrame(query, debug=False):
         #   dataframe is of type DateTimeIndex as well so future screening
         #   doesn't barf due to missing methods.
         print("Query returned no results!")
-        utctz = pytz.timezone(("UTC"))
-        now = dt.datetime.now().astimezone(utctz)
+        then = np.datetime64('1983-04-15T02:00')
 
         betterResults = pd.DataFrame()
 
         if isinstance(expectedCols, str):
             # NEED a dict here with a timestamp as key so the Dataframe
             #   index is of the right type later on
-            betterResults[expectedCols] = {now: None}
+            betterResults[expectedCols] = {then: None}
         elif isinstance(expectedCols, list):
             for ecol in expectedCols:
-                betterResults[ecol] = {now: None}
+                betterResults[ecol] = {then: None}
 
         # utctz = pytz.timezone(("UTC"))
         # now = dt.datetime.now().astimezone(utctz)
