@@ -153,7 +153,7 @@ def getResultsDataFrame(query, debug=False):
         #   don't crash outright. We need to make sure the index of the
         #   dataframe is of type DateTimeIndex as well so future screening
         #   doesn't barf due to missing methods.
-        print("Query returned no results! Is that expected?")
+        print("Query returned no results!")
         utctz = pytz.timezone(("UTC"))
         now = dt.datetime.now().astimezone(utctz)
 
