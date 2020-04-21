@@ -15,6 +15,9 @@ Further description.
 
 from __future__ import division, print_function, absolute_import
 
+import datetime as dt
+
+import pytz
 import pandas as pd
 from influxdb import DataFrameClient
 
@@ -147,14 +150,26 @@ def getResultsDataFrame(query, debug=False):
     else:
         # This means that the query literally returned nothing at all, so
         #   we have to make the expected DataFrame ourselves so others
-        #   don't crash outright
+        #   don't crash outright. We need to make sure the index of the
+        #   dataframe is of type DateTimeIndex as well so future screening
+        #   doesn't barf due to missing methods.
         print("Query returned no results! Is that expected?")
+        utctz = pytz.timezone(("UTC"))
+        now = dt.datetime.now().astimezone(utctz)
+
         betterResults = pd.DataFrame()
+
         if isinstance(expectedCols, str):
-            betterResults[expectedCols] = None
+            # NEED a dict here with a timestamp as key so the Dataframe
+            #   index is of the right type later on
+            betterResults[expectedCols] = {now: None}
         elif isinstance(expectedCols, list):
             for ecol in expectedCols:
-                betterResults[ecol] = None
+                betterResults[ecol] = {now: None}
+
+        # utctz = pytz.timezone(("UTC"))
+        # now = dt.datetime.now().astimezone(utctz)
+        # betterResults.set_index(pd.DatetimeIndex([now]))
 
     # This is at least a little better
     return betterResults
