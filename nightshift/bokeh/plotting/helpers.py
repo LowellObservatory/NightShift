@@ -199,10 +199,16 @@ def getLast(p1, fieldname, label=None, lastIdx=None, compTime=None,
             retObj.likelyInvalid = True
             retObj.timestamp = np.datetime64('1983-04-15T02:00')
 
-        if fstr is None or sValue is None:
-            retObj.value = sValue
-        else:
-            retObj.value = fstr % (sValue)
+        try:
+            if fstr is None or sValue is None:
+                retObj.value = sValue
+            else:
+                retObj.value = fstr % (sValue)
+        except TypeError:
+            sValue = None
+            retObj.tooOld = True
+            retObj.likelyInvalid = True
+            retObj.timestamp = np.datetime64('1983-04-15T02:00')
 
         if label is not None:
             retObj.label = label
