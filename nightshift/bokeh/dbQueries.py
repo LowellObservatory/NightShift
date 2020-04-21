@@ -18,6 +18,7 @@ from __future__ import division, print_function, absolute_import
 import datetime as dt
 
 import pytz
+import numpy as np
 import pandas as pd
 from influxdb import DataFrameClient
 
@@ -163,14 +164,10 @@ def getResultsDataFrame(query, debug=False):
         if isinstance(expectedCols, str):
             # NEED a dict here with a timestamp as key so the Dataframe
             #   index is of the right type later on
-            betterResults[expectedCols] = {then: None}
+            betterResults[expectedCols] = {then: np.nan}
         elif isinstance(expectedCols, list):
             for ecol in expectedCols:
-                betterResults[ecol] = {then: None}
-
-        # utctz = pytz.timezone(("UTC"))
-        # now = dt.datetime.now().astimezone(utctz)
-        # betterResults.set_index(pd.DatetimeIndex([now]))
+                betterResults[ecol] = {then: np.nan}
 
     # This is at least a little better
     return betterResults
