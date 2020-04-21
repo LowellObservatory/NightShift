@@ -156,7 +156,7 @@ def getResultsDataFrame(query, debug=False):
         #   doesn't barf due to missing methods.
         print("Query returned no results!")
 
-        then = dt.datetime.strptime("1984-04-15T02:00 -0500",
+        then = dt.datetime.strptime("1984-04-15T02:00 +0000",
                                     "%Y-%m-%dT%H:%M %z")
 
         betterResults = pd.DataFrame()
