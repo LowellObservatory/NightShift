@@ -18,6 +18,7 @@ from __future__ import division, print_function, absolute_import
 import datetime as dt
 from collections import OrderedDict
 
+import pytz
 from bokeh.models import DataRange1d
 
 from ..plotting import helpers
@@ -61,13 +62,15 @@ def dataGatherer(m, qdata, timeFilter=None, fillNull=True, debug=True):
     else:
         # Now select only the data in those frames since lastTime
         #   But! Of course there's another caveat.
-        # lastTimedt could be a dt.datetime object, but r.index has a type of
+        # timeFilter could be a dt.datetime object, but r.index has a type of
         #   Timestamp which is really a np.datetime64 wrapper. So we need
         #   to put them on the same page for actual comparisons.
         # NOTE: The logic here was unrolled for debugging timestamp crap.
         #   it can be rolled up again in the next version.
         ripydt = r.index.to_pydatetime()
+        # print("ripydt", ripydt)
         r2ipydt = r2.index.to_pydatetime()
+        # print("r2ipydt", r2ipydt)
 
         if debug is True:
             print("Last in CDS: %s" % (timeFilter))
@@ -115,8 +118,12 @@ def make_plot(doc):
     print("Serving %s" % (m.title))
 
     # Use this to consistently filter/gather the data based on some
-    #   specific tags/reorganizing
-    r = dataGatherer(m, qdata)
+    #   specific tags/reorganizing. We need to specify a defaultTimeFilter
+    #   to ignore points well outside our time of interest, which probably
+    #   got there either via an empty query or a badly written one!
+    defaultTimeFilter = dt.datetime.now().astimezone(pytz.UTC)
+    defaultTimeFilter -= dt.timedelta(days=3)
+    r = dataGatherer(m, qdata, timeFilter=defaultTimeFilter)
 
     # A dict of helpful plot labels
     ldict = {'title': "LDT Weather Information",
@@ -179,6 +186,7 @@ def make_plot(doc):
         print("Data were updated %f seconds ago (%s)" % (tdiff, timeUpdate))
 
         # Get the last timestamp present in the existing ColumnDataSource
+        # print("In grabNew")
         lastTime = cds.data['index'].max()
 
         # Turn it into a datetime.datetime (with UTC timezone)
@@ -187,14 +195,21 @@ def make_plot(doc):
         # Sweep up all the data, and filter down to only those
         #   after the given time
         nf = dataGatherer(m, qdata, timeFilter=lastTimedt)
+        # print("nf", nf)
 
         # Check the data for updates, and downselect to just the newest
         mds2 = lplot.newDataCallback(cds, cols, nf, lastTimedt, y1lim)
 
         # Actually update the data
         if mds2 != {}:
+            # When the stream of mds2 is complete, the most recent timestamp
+            #   is converted to an int timestamp?!?!?
+            # print("cds.data['index']", cds.data['index'])
+            print("Streaming!")
             cds.stream(mds2, rollover=15000)
-            print("New data streamed; %d row(s) added" % (nf.shape[0]))
+            # print("cds.data['index']", cds.data['index'])
+            print("cds.data['index'].max()", cds.data['index'].max())
+            # print("New data streamed; %d row(s) added" % (nf.shape[0]))
 
         # Check to see if we have to update the sunrise/sunset times
         #   Create ones so it's super easy to just compare by .location

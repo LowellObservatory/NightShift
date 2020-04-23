@@ -305,9 +305,13 @@ def newDataCallback(cds, cols, nf, lastTimedt, y1lim):
         # It is VITALLY important that the length of all of these
         #   is the same! If it's not, it'll slowly go bonkers.
         #
-        # Could add a check to make sure here, but I'll ride dirty for now.
-        mds2 = dict(index=nf.index, pix=nix, piy=niy)
+        # Before this is streamed to the main column data source, bokeh
+        #   attempts to convert it to an ndarray. But it screws up the
+        #   index.  So take care of that ourselves here.
+        mds2 = dict(index=nf.index.to_numpy(), pix=nix, piy=niy)
+
         for col in cols:
-            mds2.update({col: getattr(nf, col)})
+            storableObject = getattr(nf, col)
+            mds2.update({col: storableObject})
 
     return mds2

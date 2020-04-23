@@ -153,32 +153,20 @@ def getResultsDataFrame(query, debug=False):
         #   we have to make the expected DataFrame ourselves so others
         #   don't crash outright. We need to make sure the index of the
         #   dataframe is of type DateTimeIndex as well so future screening
-        #   doesn't barf due to missing methods.
+        #   doesn't barf due to missing methods, too.  Lil' bit hackish.
         print("Query returned no results!")
 
-        then = dt.datetime.strptime("1984-04-15T02:00 +0000",
-                                    "%Y-%m-%dT%H:%M %z")
+        then = dt.datetime.strptime("1984-04-15T02:00", "%Y-%m-%dT%H:%M")
+        then = then.replace(tzinfo=pytz.UTC)
 
         betterResults = pd.DataFrame()
+        dummyFrame = pd.Series([np.nan], index=[then])
 
         if isinstance(expectedCols, str):
-            # NEED a dict here with a timestamp as key so the Dataframe
-            #   index is of the right type later on
-            # NOTE: This is broke as shit. Like, totally FUBAR.
-            # FIX THIS HERE!!!
-            # Later on, the timestamp gets interpreted as an actual value
-            #   and all sorts of things blow up because of it.  In a data
-            #   stream/update, I see the following:
-            #
-            # {'AirTemp': 8.722222222222225,
-            #  'Humidity': 41.0,
-            #  'DewPoint': -3.722222222222222,
-            #  'MountTemp': numpy.datetime64('1984-04-15T02:00:00.000000000')
-            #  }
-            betterResults[expectedCols] = {then: np.nan}
+            betterResults[expectedCols] = dummyFrame
         elif isinstance(expectedCols, list):
             for ecol in expectedCols:
-                betterResults[ecol] = {then: np.nan}
+                betterResults[ecol] = dummyFrame
 
     # This is at least a little better
     return betterResults
