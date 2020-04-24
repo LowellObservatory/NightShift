@@ -206,15 +206,22 @@ def getLast(p1, fieldname, label=None, lastIdx=None, compTime=None,
             else:
                 retObj.label = fieldname
 
-            # If we got all the way here, we're probably ok.
-            retObj.likelyInvalid = False
+            # One last sanity check - it's possible we got this far but the
+            #   value is really just a NaN.  This check should probably be
+            #   rolled into judgeAge for safety as well as future sanity.
+            #   We use the Pandas check here because it returns a single
+            #   value, whereas the Numpy version returns an array
+            # We also need to check for instances where NaN got stringed
+            if retObj.value == 'nan':
+                retObj.value = np.nan
+            retObj.likelyInvalid = pd.isna(retObj.value)
         except (TypeError, AttributeError):
             # The TypeError catch will get triggered on queries where there
             #   is no data and I fudged a returned DataFrame because
             #   val*scaleFactor will explode, or the fstr did.
             retObj.likelyInvalid = True
 
-        if retObj.likelyInvalid is True or np.isnan(sValue) is True:
+        if retObj.likelyInvalid is True:
             sValue = None
             retObj.tooOld = True
             retObj.likelyInvalid = True
