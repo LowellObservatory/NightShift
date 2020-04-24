@@ -214,7 +214,7 @@ def getLast(p1, fieldname, label=None, lastIdx=None, compTime=None,
             #   val*scaleFactor will explode, or the fstr did.
             retObj.likelyInvalid = True
 
-        if retObj.likelyInvalid is True or sValue == np.nan:
+        if retObj.likelyInvalid is True or np.isnan(sValue) is True:
             sValue = None
             retObj.tooOld = True
             retObj.likelyInvalid = True
