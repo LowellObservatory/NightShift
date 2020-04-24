@@ -176,6 +176,8 @@ def getLast(p1, fieldname, label=None, lastIdx=None, compTime=None,
         else:
             retObj.label = fieldname
     else:
+        # At least what we given was a DataFrame...but we need to dig deeper
+
         # Get the last valid position/value in the dataframe
         lastIdx = p1.index[-1]
 
@@ -191,36 +193,38 @@ def getLast(p1, fieldname, label=None, lastIdx=None, compTime=None,
             # Use datetime64 to avoid an annoying nanoseconds warning when
             #   using just regular .to_pydatetime()
             retObj.timestamp = lastIdx.to_datetime64()
-        except (TypeError, AttributeError):
-            # The TypeError catch will get triggered on queries where there
-            #   is no data and I fudged a returned DataFrame I think?
-            sValue = None
-            retObj.tooOld = True
-            retObj.likelyInvalid = True
-            retObj.timestamp = np.datetime64('1983-04-15T02:00')
 
-        try:
+            # Deal with any requested formatting changes
             if fstr is None or sValue is None:
                 retObj.value = sValue
             else:
                 retObj.value = fstr % (sValue)
-        except TypeError:
+
+            # Set the label used in the table (or whatever)
+            if label is not None:
+                retObj.label = label
+            else:
+                retObj.label = fieldname
+        except (TypeError, AttributeError):
+            # The TypeError catch will get triggered on queries where there
+            #   is no data and I fudged a returned DataFrame because
+            #   val*scaleFactor will explode, or the fstr did.
+            retObj.likelyInvalid = True
+
+        if retObj.likelyInvalid is True or sValue == np.nan:
             sValue = None
             retObj.tooOld = True
             retObj.likelyInvalid = True
             retObj.timestamp = np.datetime64('1983-04-15T02:00')
 
-        if label is not None:
-            retObj.label = label
-        else:
-            retObj.label = fieldname
-
-        retObj.judgeAge(compTime=compTime)
-        if retObj.likelyInvalid is True:
             if nullVal is None:
                 retObj.value = funnyValues()
             else:
                 retObj.value = nullVal
+        else:
+            # This means everything up to this point was ok, so
+            #    do the nominal check on it's age/vintage and give it back
+            retObj.judgeAge(compTime=compTime)
 
     return retObj
 
