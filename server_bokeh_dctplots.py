@@ -29,10 +29,9 @@ from bokeh.application.handlers.function import FunctionHandler
 from tornado.ioloop import PeriodicCallback
 
 from ligmos.utils import ephemera
+from ligmos.utils import database
 
 import nightshift.bokeh.confHerder as ch
-import nightshift.bokeh.dbQueries as dbq
-
 import nightshift.bokeh.plotting.colorWheelies as cwheels
 
 from nightshift.bokeh.ldt import facsumLPI, facsumTCS
@@ -78,7 +77,7 @@ def batchQuery(plotState=None, site='ldt', debug=False):
         # Should not only pull this out of the loop, but change it to
         #   use 'bind_params' for extra safety!
         # query = dbq.queryConstructor(q, dtime=q.rangehours, debug=debug)
-        td = dbq.getResultsDataFrame(quer[iq], debug=debug)
+        td = database.getResultsDataFrame(quer[iq], debug=debug)
 
         qdata.update({iq: td})
 
