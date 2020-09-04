@@ -96,7 +96,7 @@ def G16_ABI_L2_ProjDef(nc):
                                               nx, ny, extents)
 
     except (RuntimeError, AttributeError) as err:
-        proj_var = None
+        old_grid = None
         imgdata = None
         print(str(err))
 
