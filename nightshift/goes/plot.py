@@ -294,80 +294,81 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
             print('NEW projection information: {}'.format(ngrid))
 
-            # COMMENT START HERE
+            if ndat is not None:
+                # Get the new projection/transformation info for the plot axes
+                crs = ngrid.to_cartopy_crs()
 
-            # Get the new projection/transformation info for the plot axes
-            crs = ngrid.to_cartopy_crs()
+                # Get the proper plot extents so we have no whitespace
+                print(crs.bounds)
+                prlon = (crs.x_limits[1] - crs.x_limits[0])
+                prlat = (crs.y_limits[1] - crs.y_limits[0])
+                # Ultimate image width/height
+                paspect = prlon/prlat
 
-            # Get the proper plot extents so we have no whitespace
-            print(crs.bounds)
-            prlon = (crs.x_limits[1] - crs.x_limits[0])
-            prlat = (crs.y_limits[1] - crs.y_limits[0])
-            # Ultimate image width/height
-            paspect = prlon/prlat
+                # !!! WARNING !!!
+                #   I hate this, but it works if you let the aspect stretch
+                #   just a tiny bit. Needed for MP4 creation because the
+                #   compression algorithm needs an even number divisor
+                figsize = (7., np.round(7./paspect, decimals=2))
 
-            # !!! WARNING !!!
-            #   I hate this kludge, but it works if you let the aspect stretch
-            #   just a tiny bit. Necessary for the MP4 creation because the
-            #   compression algorithm needs an even number divisor
-            figsize = (7., np.round(7./paspect, decimals=2))
+                print(prlon, prlat, paspect)
+                print(figsize)
 
-            print(prlon, prlat, paspect)
-            print(figsize)
+                # Figure creation
+                fig = plt.figure(figsize=figsize, dpi=100)
 
-            # Figure creation
-            fig = plt.figure(figsize=figsize, dpi=100)
+                # Needed to remove any whitespace/padding around the imshow()
+                plt.subplots_adjust(left=0., right=1., top=1., bottom=0.)
 
-            # Needed to remove any whitespace/padding around the imshow()
-            plt.subplots_adjust(left=0., right=1., top=1., bottom=0.)
+                # Tell matplotlib we're using a map projection so cartopy
+                #   takes over and overloades Axes() with GeoAxes()
+                ax = plt.axes(projection=crs)
 
-            # Tell matplotlib we're using a map projection so cartopy
-            #   takes over and overloades Axes() with GeoAxes()
-            ax = plt.axes(projection=crs)
+                # This actually sets the background map color so it's darker
+                #   when there's no data or missing data.
+                ax.background_patch.set_facecolor('#262629')
 
-            # This actually sets the background map color so it's darker
-            #   when there's no data or missing data.
-            ax.background_patch.set_facecolor('#262629')
+                # Some custom stuff
+                ax = com.maps.add_map_features(ax, counties=counties,
+                                               roads=roads)
+                ax = com.maps.add_AZObs(ax)
 
-            # Some custom stuff
-            ax = com.maps.add_map_features(ax, counties=counties, roads=roads)
-            ax = com.maps.add_AZObs(ax)
+                plt.imshow(ndat, transform=crs, extent=crs.bounds,
+                           origin='upper', vmin=160., vmax=330.,
+                           interpolation='none', cmap=cmap)
 
-            plt.imshow(ndat, transform=crs, extent=crs.bounds, origin='upper',
-                       vmin=160., vmax=330., interpolation='none',
-                       cmap=cmap)
+                # Black background for top label text
+                #   NOTE: Z order is important! Text should be > than trect
+                trect = mpatches.Rectangle((0.0, 0.955), width=1.0,
+                                           height=0.045, edgecolor=None,
+                                           facecolor='black',
+                                           fill=True, alpha=1.0, zorder=100,
+                                           transform=ax.transAxes)
+                ax.add_patch(trect)
 
-            # Black background for top label text
-            #   NOTE: Z order is important! Text should be higher than trect
-            trect = mpatches.Rectangle((0.0, 0.955), width=1.0, height=0.045,
-                                       edgecolor=None, facecolor='black',
-                                       fill=True, alpha=1.0, zorder=100,
-                                       transform=ax.transAxes)
-            ax.add_patch(trect)
+                # Add the informational bar at the top, using info directly
+                #   from the original datafiles that we opened at the top
+                # Line 1
+                plt.annotate(line1, (0.5, 0.985), xycoords='axes fraction',
+                             fontfamily='monospace',
+                             horizontalalignment='center',
+                             verticalalignment='center',
+                             color='white', fontweight='bold', zorder=200)
+                # Line 2
+                plt.annotate(line2, (0.5, 0.965), xycoords='axes fraction',
+                             fontfamily='monospace',
+                             horizontalalignment='center',
+                             verticalalignment='center',
+                             color='white', fontweight='bold', zorder=200)
 
-            # Add the informational bar at the top, using info directly
-            #   from the original datafiles that we opened at the top
-            # Line 1
-            plt.annotate(line1, (0.5, 0.985), xycoords='axes fraction',
-                         fontfamily='monospace',
-                         horizontalalignment='center',
-                         verticalalignment='center',
-                         color='white', fontweight='bold', zorder=200)
-            # Line 2
-            plt.annotate(line2, (0.5, 0.965), xycoords='axes fraction',
-                         fontfamily='monospace',
-                         horizontalalignment='center',
-                         verticalalignment='center',
-                         color='white', fontweight='bold', zorder=200)
+                # Useful for testing getCmap changes
+                # plt.colorbar()
 
-            # Useful for testing getCmap changes
-            # plt.colorbar()
-
-            plt.savefig(outpname, dpi=100)
-            print("Saved as %s." % (outpname))
-            plt.close()
-
-            # COMMENT END HERE
+                plt.savefig(outpname, dpi=100)
+                print("Saved as %s." % (outpname))
+                plt.close()
+            else:
+                print("Image data not found, skipping file.")
 
             # Make sure to save the current timestamp for comparison the
             #   next time through the loop!
@@ -377,6 +378,5 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
             # Leak killing. Not sure which one of these is the culprit
             #   ... but testing implies it's one (or more) or these.
             del crs, fig, ax, line1, line2, ngrid, ndat
-            # del dat, ngrid, ndat
 
     return i
