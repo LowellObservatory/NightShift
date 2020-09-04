@@ -46,11 +46,16 @@ def G16_ABI_L2_ProjDef(nc):
     #     dat.variables['goes_imager_projection']
     # See also:
     #     https://proj4.org/operations/projections/geos.html
-    proj_var = nc.variables['goes_imager_projection']
-    # print(proj_var)
+    try:
+        proj_var = nc.variables['goes_imager_projection']
+        # print(proj_var)
 
-    # Isolate just the image data for others to use
-    imgdata = nc['CMI'][:]
+        # Isolate just the image data for others to use
+        imgdata = nc['CMI'][:]
+    except RuntimeError as err:
+        proj_var = None
+        imgdata = None
+        print(str(err))
 
     # Since scanning_angle (radians) = projection_coordinate / h,
     #   the projection coordinates are now easy to get.
@@ -140,7 +145,7 @@ def crop_image(filename, clat, clon, pCoeff=None):
                                                   'lat_2': clat})
 
     # If we don't have projection coefficients already, calculate 'em!
-    if pCoeff is None:
+    if pCoeff is None and old_grid is not None:
         # SC2000 FTW
         print("Reticulating splines...")
 
@@ -151,6 +156,9 @@ def crop_image(filename, clat, clon, pCoeff=None):
                                                neighbours=1, epsilon=0.,
                                                nprocs=1)
         # print('Old projection information: {}'.format(old_grid))
+    elif old_grid is None:
+        print("Existing grid information not found! Bad file?")
+        pCoeff = None
     else:
         # NOTE: I'm not rechecking anything, I'm just assuming it's all good
         #   and reusing it.  It'll probably look messed up in some obvious
@@ -158,12 +166,16 @@ def crop_image(filename, clat, clon, pCoeff=None):
         print("Reusing transformation coefficients!")
 
     # Now that we're guaranteed to have the projection details, actually do it
-    pData = pr.kd_tree.get_sample_from_neighbour_info('nn',
-                                                      area_def.shape,
-                                                      imgdata,
-                                                      pCoeff[0],
-                                                      pCoeff[1],
-                                                      pCoeff[2])
+    if imgdata is not None:
+        pData = pr.kd_tree.get_sample_from_neighbour_info('nn',
+                                                          area_def.shape,
+                                                          imgdata,
+                                                          pCoeff[0],
+                                                          pCoeff[1],
+                                                          pCoeff[2])
+    else:
+        print("Image data not found! Bad file?")
+        pData = None
 
     # OLD WAY THAT STILL WORKS! Resamples in one step, and its basically just
     #   a wrapper for the above two-step dance.
