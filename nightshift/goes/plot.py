@@ -369,6 +369,13 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 plt.close()
             else:
                 print("Image data not found, skipping file.")
+                crs = None
+                fig = None
+                ax = None
+                line1 = None
+                line2 = None
+                ngrid = None
+                ndat = None
 
             # Make sure to save the current timestamp for comparison the
             #   next time through the loop!
