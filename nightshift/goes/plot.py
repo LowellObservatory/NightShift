@@ -52,52 +52,53 @@ def G16_ABI_L2_ProjDef(nc):
 
         # Isolate just the image data for others to use
         imgdata = nc['CMI'][:]
-    except RuntimeError as err:
+
+        # Since scanning_angle (radians) = projection_coordinate / h,
+        #   the projection coordinates are now easy to get.
+        satH = proj_var.perspective_point_height
+        satLat = proj_var.latitude_of_projection_origin
+        satLon = proj_var.longitude_of_projection_origin
+        satSweep = proj_var.sweep_angle_axis
+        semi_major = proj_var.semi_major_axis
+        semi_minor = proj_var.semi_minor_axis
+
+        x = (nc.variables['x'][:])*satH
+        y = (nc.variables['y'][:])*satH
+
+        nx = len(x)
+        ny = len(y)
+
+        min_x = x.min()
+        max_x = x.max()
+        min_y = y.min()
+        max_y = y.max()
+
+        # NOTE:
+        #   Currently don't know why the google example offsets by half_x/y...
+        half_x = (max_x - min_x) / nx / 2.
+        half_y = (max_y - min_y) / ny / 2.
+        extents = (min_x - half_x, min_y - half_y, max_x + half_x, max_y + half_y)
+
+        # Props to
+        #   https://groups.google.com/forum/#!topic/pytroll/EIl0voQDqiI
+        # for pointing out that 'sweep' definition is important!!!
+        # You get an X & Y offset without it, which makes sense in retrospect.
+        old_grid = pr.geometry.AreaDefinition('geos', 'goes_conus', 'geos',
+                                              {'proj': 'geos',
+                                               'h': str(satH),
+                                               'lon_0': str(satLon),
+                                               'lat_0': str(satLat),
+                                               'a': str(semi_major),
+                                               'b': str(semi_minor),
+                                               'units': 'm',
+                                               'ellps': 'GRS80',
+                                               'sweep': satSweep},
+                                              nx, ny, extents)
+
+    except (RuntimeError, AttributeError) as err:
         proj_var = None
         imgdata = None
         print(str(err))
-
-    # Since scanning_angle (radians) = projection_coordinate / h,
-    #   the projection coordinates are now easy to get.
-    satH = proj_var.perspective_point_height
-    satLat = proj_var.latitude_of_projection_origin
-    satLon = proj_var.longitude_of_projection_origin
-    satSweep = proj_var.sweep_angle_axis
-    semi_major = proj_var.semi_major_axis
-    semi_minor = proj_var.semi_minor_axis
-
-    x = (nc.variables['x'][:])*satH
-    y = (nc.variables['y'][:])*satH
-
-    nx = len(x)
-    ny = len(y)
-
-    min_x = x.min()
-    max_x = x.max()
-    min_y = y.min()
-    max_y = y.max()
-
-    # NOTE:
-    #   Currently don't know why the google example offsets by half_x/y...
-    half_x = (max_x - min_x) / nx / 2.
-    half_y = (max_y - min_y) / ny / 2.
-    extents = (min_x - half_x, min_y - half_y, max_x + half_x, max_y + half_y)
-
-    # Props to
-    #   https://groups.google.com/forum/#!topic/pytroll/EIl0voQDqiI
-    # for pointing out that 'sweep' definition is important!!!
-    # You get an X & Y offset without it, which makes sense in retrospect.
-    old_grid = pr.geometry.AreaDefinition('geos', 'goes_conus', 'geos',
-                                          {'proj': 'geos',
-                                           'h': str(satH),
-                                           'lon_0': str(satLon),
-                                           'lat_0': str(satLat),
-                                           'a': str(semi_major),
-                                           'b': str(semi_minor),
-                                           'units': 'm',
-                                           'ellps': 'GRS80',
-                                           'sweep': satSweep},
-                                          nx, ny, extents)
 
     return old_grid, imgdata
 
