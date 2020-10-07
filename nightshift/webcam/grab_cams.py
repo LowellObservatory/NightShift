@@ -192,10 +192,12 @@ def grabFromRTSP(curcam, outfile):
             snap = None
             print(newurl)
             with rtsp.Client(rtsp_server_uri=newurl) as client:
-                # Wait a tiny bit to make sure the client is opened, otherwise
-                #   you'll get a cryptic segfault-type thing
                 time.sleep(1)
-                snap = client.read()
+                # Check to make sure the client opened otherwise we can get
+                #   a very cryptic segfault-ish crash
+                while client.isOpened():
+                    snap = client.read()
+                    break
 
             if snap is not None:
                 snap.save(outfile)
