@@ -15,6 +15,11 @@ import time
 
 from bs4 import BeautifulSoup
 
+try:
+    import rtsp
+except ImportError:
+    rtsp = None
+
 from requests import get as httpget
 from requests.exceptions import ConnectionError as RCE
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
@@ -36,6 +41,11 @@ def grabSet(camset, failimg=None, interval=0.5):
                 camGrabbie(currentCamera, outfile)
             elif currentCamera.type.lower() == 'opendir':
                 grabFromOpenDirectory(currentCamera, outfile)
+            elif currentCamera.type.lower() == 'rtsp':
+                if rtsp is None:
+                    print("Python rtsp library not found! Skipping.")
+                else:
+                    grabFromRTSP(currentCamera, outfile)
         except RCE as err:
             # This handles the connection error cases from the specific
             #   image grabbing utility functions. They should just
@@ -153,3 +163,36 @@ def grabFromOpenDirectory(curcam, outfile):
     else:
         # TODO: Finish this!
         pass
+
+
+def grabFromRTSP(curcam, outfile):
+    """
+    Assumes that curcam.url includes the RTSP endpoint.  Doesn't provide
+    a way to change the RTSP port, so make sure that's in the URL too.
+    If those aren't the case, this needs to be changed!
+    """
+    urlparts = curcam.url.lower().split("://")
+    urlprefix = None
+    if len(urlparts) == 1:
+        # This implies it was just an ip or a hostname
+        urlprefix = "rtsp"
+
+    if urlparts[0] in ['http', 'https', None]:
+        print("Invalid URL! Skipping.")
+        return
+    elif urlprefix == 'rtsp' or urlprefix is None:
+        # Insert the username and password inline if we have it
+        if curcam.user is not None and curcam.password is not None:
+            newurl = "rtsp://%s:%s@%s" % (curcam.user, curcam.password,
+                                          urlparts[1])
+        else:
+            newurl = "rtsp://%s" % (urlparts[1])
+
+        try:
+            client = rtsp.Client(rtsp_server_uri=newurl)
+            snap = client.read()
+            client.close()
+            snap.save(outfile)
+        except Exception as e:
+            # TODO: Catch the specific exceptions possible here
+            print(str(e))
