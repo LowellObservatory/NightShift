@@ -13,12 +13,9 @@ from __future__ import division, print_function, absolute_import
 import re
 import time
 
+import cv2
+from PIL import Image
 from bs4 import BeautifulSoup
-
-try:
-    import rtsp
-except ImportError:
-    rtsp = None
 
 from requests import get as httpget
 from requests.exceptions import ConnectionError as RCE
@@ -42,10 +39,7 @@ def grabSet(camset, failimg=None, interval=0.5):
             elif currentCamera.type.lower() == 'opendir':
                 grabFromOpenDirectory(currentCamera, outfile)
             elif currentCamera.type.lower() == 'rtsp':
-                if rtsp is None:
-                    print("Python rtsp library not found! Skipping.")
-                else:
-                    grabFromRTSP(currentCamera, outfile)
+                grabFromRTSP(currentCamera, outfile)
         except RCE as err:
             # This handles the connection error cases from the specific
             #   image grabbing utility functions. They should just
@@ -190,24 +184,21 @@ def grabFromRTSP(curcam, outfile):
 
         try:
             snap = None
-            print(newurl)
-            print("Opening RTSP")
-            client = rtsp.Client(rtsp_server_uri=newurl, verbose=True)
-            time.sleep(5)
+            client = cv2.VideoCapture(newurl)
             # Check to make sure the client opened otherwise we can get
             #   a very cryptic segfault-ish crash
-            print("Reading...")
-            snap = client.read()
-            client.close()
-            print("Done!")
+            if client.isOpened() is True:
+                print("RTSP Opened...")
+                (success, snap) = client.read()
+                if success is True:
+                    print("Frame grabbed!")
+                client.release()
+                print("RTSP Closed")
 
-            print("RTSP Closed")
             if snap is not None:
-                print(type(snap))
-                print(dir(snap))
+                saveme = Image.fromarray(cv2.cvtColor(snap, cv2.COLOR_BGR2RGB))
                 print("Saving to %s" % (outfile))
-                print(snap.size, snap.mode, snap.info)
-                snap.save(outfile)
+                saveme.save(outfile)
         except Exception as e:
             # TODO: Catch the specific exceptions possible here
             print(str(e))
