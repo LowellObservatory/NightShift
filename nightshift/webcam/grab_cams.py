@@ -12,6 +12,7 @@ from __future__ import division, print_function, absolute_import
 
 import re
 import time
+import shutil
 from datetime import datetime as dt
 
 import cv2
@@ -52,6 +53,14 @@ def grabSet(camset, failimg=None, interval=0.5):
                 grabFromOpenDirectory(currentCamera, outfile)
             elif currentCamera.type.lower() == 'rtsp':
                 grabFromRTSP(currentCamera, outfile)
+
+            # Now copy the file to the archive location
+            #      copy(src, dest)
+            try:
+                shutil.copy(outfile, archivefile)
+            except Exception as e:
+                print(str(e))
+
         except RCE as err:
             # This handles the connection error cases from the specific
             #   image grabbing utility functions. They should just

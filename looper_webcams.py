@@ -48,6 +48,9 @@ def main():
         location = curcam.odir
         files.checkOutDir(location, getList=False)
 
+        # Test the archive location
+        files.checkOutDir(location+"/archive/", getList=False)
+
     # Just run it for ever and ever and ever and ever and ever and ever
     while True:
         # failimg = None just uses the default one:
