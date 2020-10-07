@@ -191,7 +191,7 @@ def grabFromRTSP(curcam, outfile):
         try:
             snap = None
             print(newurl)
-            with rtsp.Client(rtsp_server_uri=newurl) as client:
+            with rtsp.Client(rtsp_server_uri=newurl, verbose=True) as client:
                 time.sleep(5)
                 # Check to make sure the client opened otherwise we can get
                 #   a very cryptic segfault-ish crash
