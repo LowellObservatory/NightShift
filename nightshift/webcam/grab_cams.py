@@ -12,6 +12,7 @@ from __future__ import division, print_function, absolute_import
 
 import re
 import time
+from datetime import datetime as dt
 
 import cv2
 from PIL import Image
@@ -32,6 +33,17 @@ def grabSet(camset, failimg=None, interval=0.5):
         currentCamera = camset[cam]
         print('Retrieving camera image: %s' % (cam))
 
+        # Hack to save both the latest and the previous ones
+        nowTime = dt.utcnow()
+        nowTimeStr = nowTime.strftime("%Y%m%d_%H%M%S")
+
+        curOutName = currentCamera.oname.split(".")
+        archivefile = "%s/archive/%s_%s.%s" % (currentCamera.odir,
+                                               curOutName[0], nowTimeStr,
+                                               curOutName[1])
+        print("File will be archived as: %s" % (archivefile))
+
+        # This is the static (current/most recent) image
         outfile = "%s/%s" % (currentCamera.odir, currentCamera.oname)
         try:
             if currentCamera.type.lower() == 'webcam':
@@ -184,6 +196,7 @@ def grabFromRTSP(curcam, outfile):
 
         try:
             snap = None
+            success = False
             client = cv2.VideoCapture(newurl)
             # Check to make sure the client opened otherwise we can get
             #   a very cryptic segfault-ish crash
@@ -195,10 +208,16 @@ def grabFromRTSP(curcam, outfile):
                 client.release()
                 print("RTSP Closed")
 
-            if snap is not None:
+            if snap is not None and success is True:
                 saveme = Image.fromarray(cv2.cvtColor(snap, cv2.COLOR_BGR2RGB))
                 print("Saving to %s" % (outfile))
                 saveme.save(outfile)
+            else:
+                # Should I really do this?  I think so, this will trigger
+                #   the creation of the error image
+                raise RCE
         except Exception as e:
             # TODO: Catch the specific exceptions possible here
             print(str(e))
+
+            raise RCE from e
