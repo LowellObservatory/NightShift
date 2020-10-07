@@ -206,6 +206,7 @@ def grabFromRTSP(curcam, outfile):
                 print(type(snap))
                 print(dir(snap))
                 print("Saving to %s" % (outfile))
+                print(snap.size, snap.mode, snap.info)
                 snap.save(outfile)
         except Exception as e:
             # TODO: Catch the specific exceptions possible here
