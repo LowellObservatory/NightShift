@@ -198,6 +198,7 @@ def grabFromRTSP(curcam, outfile):
             #   a very cryptic segfault-ish crash
             print("Reading...")
             snap = client.read()
+            client.close()
             print("Done!")
 
             print("RTSP Closed")
