@@ -48,15 +48,11 @@ def main():
         location = curcam.odir
         files.checkOutDir(location, getList=False)
 
-        # Test the general archive location. Files will be further organized
-        #   and moved around within this level
-        webcamArk = "%s/archive/%s/" % (location, cam)
-        files.checkOutDir(webcamArk, getList=False)
-
     # Just run it for ever and ever and ever and ever and ever and ever
     while True:
         # failimg = None just uses the default one:
         #   resources/images/percy_txt.jpg
+        # Note: Archive locations will be created automatically in here
         cams.grabSet(oncams, failimg=None, archive=True)
         print("Done Grabbing Images!")
 

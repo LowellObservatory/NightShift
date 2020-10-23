@@ -63,7 +63,7 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False):
                 thisarchivedir = "%s/%s/" % (archiveBase, nowDateStr)
                 files.checkOutDir(thisarchivedir, getList=False)
                 archivefile = "%s/%s.%s" % (thisarchivedir,
-                                            curOutName[0], curOutName[1])
+                                            nowTimeStr, curOutName[1])
 
                 print("File will be archived as: %s" % (archivefile))
                 # Now copy the file to the archive location
