@@ -23,10 +23,12 @@ from requests import get as httpget
 from requests.exceptions import ConnectionError as RCE
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
+from ligmos.utils import files
+
 from ..common import images
 
 
-def grabSet(camset, failimg=None, interval=0.5):
+def grabSet(camset, failimg=None, interval=0.5, archive=False):
     """
     Grab all camera images in the given dictionary
     """
@@ -37,12 +39,7 @@ def grabSet(camset, failimg=None, interval=0.5):
         # Hack to save both the latest and the previous ones
         nowTime = dt.utcnow()
         nowTimeStr = nowTime.strftime("%Y%m%d_%H%M%S")
-
-        curOutName = currentCamera.oname.split(".")
-        archivefile = "%s/archive/%s_%s.%s" % (currentCamera.odir,
-                                               curOutName[0], nowTimeStr,
-                                               curOutName[1])
-        print("File will be archived as: %s" % (archivefile))
+        nowDateStr = nowTime.strftime("%Y%m%d")
 
         # This is the static (current/most recent) image
         outfile = "%s/%s" % (currentCamera.odir, currentCamera.oname)
@@ -54,12 +51,26 @@ def grabSet(camset, failimg=None, interval=0.5):
             elif currentCamera.type.lower() == 'rtsp':
                 grabFromRTSP(currentCamera, outfile)
 
-            # Now copy the file to the archive location
-            #      copy(src, dest)
-            try:
-                shutil.copy(outfile, archivefile)
-            except Exception as e:
-                print(str(e))
+            if archive is True:
+                curOutName = currentCamera.oname.split(".")
+                archiveBase = "%s/archive/%s/" % (currentCamera.odir,
+                                                  curOutName[0])
+                # This will give the list of already archived dates to check
+                #   for old ones that need deleting
+                olddirs = files.checkOutDir(archiveBase, getList=True)
+
+                # Actually archive the new files
+                thisarchivedir = "%s/%s/" % (archiveBase, nowDateStr)
+                files.checkOutDir(thisarchivedir, getList=False)
+                archivefile = "%s/%s" % (thisarchivedir, curOutName[1])
+
+                print("File will be archived as: %s" % (archivefile))
+                # Now copy the file to the archive location
+                #      copy(src, dest)
+                try:
+                    shutil.copy(outfile, archivefile)
+                except Exception as e:
+                    print(str(e))
 
         except RCE as err:
             # This handles the connection error cases from the specific
