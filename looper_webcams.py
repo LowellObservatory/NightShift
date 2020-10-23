@@ -50,7 +50,7 @@ def main():
 
         # Test the general archive location. Files will be further organized
         #   and moved around within this level
-        webcamArk = "%s/archive/%s/" % (location, curcam)
+        webcamArk = "%s/archive/%s/" % (location, cam)
         files.checkOutDir(webcamArk, getList=False)
 
     # Just run it for ever and ever and ever and ever and ever and ever
