@@ -21,6 +21,7 @@ from bs4 import BeautifulSoup
 
 from requests import get as httpget
 from requests.exceptions import ConnectionError as RCE
+from requests.exceptions import ReadTimeout as RTO
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
 from ligmos.utils import files
@@ -98,19 +99,24 @@ def camGrabbie(cam, outfile):
     #   Make sure to do that check in your calling code!
     print("Attempting to write image to %s" % (outfile))
     with open(outfile, "wb") as f:
-        img = httpget(cam.url, auth=auth, timeout=5.)
-        # Check the HTTP response;
-        #   200 - 400 == True
-        #   400 - 600 == False
-        #   Other way to do it might be to check if img.status_code == 200
-        # NOTE: I needed to add this check because one webcam went
-        #   *mostly dead* and returned HTTP codes and pings, but not images.
-        if img.ok is True:
-            print("Good grab!")
-            f.write(img.content)
-        else:
-            # This will be caught elsewhere
+        try:
+            img = httpget(cam.url, auth=auth, timeout=5.)
+            # Check the HTTP response;
+            #   200 - 400 == True
+            #   400 - 600 == False
+            #   Other way to do it might be to check if img.status_code == 200
+            # NOTE: I needed to add this check because one webcam went
+            #   *mostly dead* and returned HTTP codes and pings, but not images.
+            if img.ok is True:
+                print("Good grab!")
+                f.write(img.content)
+            else:
+                # This will be caught elsewhere
+                print("Bad grab :(")
+                raise RCE
+        except RTO as err:
             print("Bad grab :(")
+            print(str(err))
             raise RCE
 
 
