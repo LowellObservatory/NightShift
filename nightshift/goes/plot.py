@@ -77,7 +77,10 @@ def G16_ABI_L2_ProjDef(nc):
         #   Currently don't know why the google example offsets by half_x/y...
         half_x = (max_x - min_x) / nx / 2.
         half_y = (max_y - min_y) / ny / 2.
-        extents = (min_x - half_x, min_y - half_y, max_x + half_x, max_y + half_y)
+        extents = (min_x - half_x,
+                   min_y - half_y,
+                   max_x + half_x,
+                   max_y + half_y)
 
         # Props to
         #   https://groups.google.com/forum/#!topic/pytroll/EIl0voQDqiI
