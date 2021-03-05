@@ -22,6 +22,16 @@ import pkg_resources as pkgr
 from PIL import Image, ImageDraw, ImageFont
 
 
+def resizeImage(infile, outfile, size):
+    """
+    """
+    oimg = Image.open(infile)
+    timg = oimg.resize(size)
+    timg.save(outfile)
+    timg.close()
+    oimg.close()
+
+
 def shift_hue(img, color=None, debug=False):
     """
     https://stackoverflow.com/questions/7274221/changing-image-hue-with-python-pil

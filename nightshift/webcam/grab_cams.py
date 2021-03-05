@@ -29,10 +29,13 @@ from ligmos.utils import files
 from ..common import images
 
 
-def grabSet(camset, failimg=None, interval=0.5, archive=False):
+def grabSet(camset, failimg=None, interval=0.5, archive=False, makeMini=True):
     """
     Grab all camera images in the given dictionary
     """
+    # This is the size that NightWatch uses
+    thumbSize = [400, 235]
+
     for cam in camset:
         currentCamera = camset[cam]
         print('Retrieving camera image: %s' % (cam))
@@ -44,6 +47,9 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False):
 
         # This is the static (current/most recent) image
         outfile = "%s/%s" % (currentCamera.odir, currentCamera.oname)
+
+        # This is the same but the smaller thumbnail version
+        thumbfile = "%s/thumb_%s" % (currentCamera.odir, currentCamera.oname)
         try:
             if currentCamera.type.lower() == 'webcam':
                 camGrabbie(currentCamera, outfile)
@@ -51,6 +57,10 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False):
                 grabFromOpenDirectory(currentCamera, outfile)
             elif currentCamera.type.lower() == 'rtsp':
                 grabFromRTSP(currentCamera, outfile)
+
+            if makeMini is True:
+                # Make a thumbnail-sized version I can easily include elsewhere
+                images.resizeImage(outfile, thumbfile, thumbSize)
 
             if archive is True:
                 curOutName = currentCamera.oname.split(".")
@@ -73,7 +83,6 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False):
                     shutil.copy(outfile, archivefile)
                 except Exception as e:
                     print(str(e))
-
         except RCE as err:
             # This handles the connection error cases from the specific
             #   image grabbing utility functions. They should just
@@ -106,7 +115,7 @@ def camGrabbie(cam, outfile):
             #   400 - 600 == False
             #   Other way to do it might be to check if img.status_code == 200
             # NOTE: I needed to add this check because one webcam went
-            #   *mostly dead* and returned HTTP codes and pings, but not images.
+            #   *mostly dead* and returned HTTP codes and pings, but not images
             if img.ok is True:
                 print("Good grab!")
                 f.write(img.content)
