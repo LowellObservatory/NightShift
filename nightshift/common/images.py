@@ -26,7 +26,7 @@ def resizeImage(infile, outfile, size):
     """
     """
     oimg = Image.open(infile)
-    timg = oimg.resize(size)
+    timg = oimg.resize(size, resample=Image.LANCZOS)
     timg.save(outfile)
     timg.close()
     oimg.close()
