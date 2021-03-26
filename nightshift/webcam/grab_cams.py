@@ -38,6 +38,9 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
     # This is the size that NightWatch uses
     thumbSize = [400, 235]
 
+    # Oldest date to keep in the archive is this many days old
+    tooOldForArchive = 30
+
     for cam in camset:
         currentCamera = camset[cam]
         print('Retrieving camera image: %s' % (cam))
