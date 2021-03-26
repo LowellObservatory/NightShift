@@ -39,7 +39,7 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
     thumbSize = [400, 235]
 
     # Oldest date to keep in the archive is this many days old
-    tooOldForArchive = 30
+    oldArchiveAge = 30
 
     for cam in camset:
         currentCamera = camset[cam]
@@ -92,11 +92,11 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
                 #   and isn't noticed, so I'll be able to track down when it
                 #   was last seen.  Seems like a good idea.
                 if cullArchive is True:
-                    oldDirs = files.findOldFiles(archiveBase, "*", nowTime,
-                                                 maxage=tooOldForArchive*24.,
-                                                 dtfmt="%Y%m%d")
-                    print("I would delete:")
-                    print(oldDirs)
+                    _, oldDirs = files.findOldFiles(archiveBase, "*", nowTime,
+                                                    maxage=oldArchiveAge*24.,
+                                                    dtfmt="%Y%m%d")
+                    if oldDirs != {}:
+                        files.deleteOldDirectories(oldDirs)
         except RCE as err:
             # This handles the connection error cases from the specific
             #   image grabbing utility functions. They should just
