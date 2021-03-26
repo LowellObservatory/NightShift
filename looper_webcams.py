@@ -12,8 +12,9 @@ from __future__ import division, print_function, absolute_import
 
 import time
 
-from nightshift.webcam import grab_cams as cams
 from ligmos.utils import logs, files, classes, confparsers
+
+from nightshift.webcam import grab_cams as cams
 
 
 def main():
