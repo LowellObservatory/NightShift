@@ -10,6 +10,7 @@
 
 from __future__ import division, print_function, absolute_import
 
+import os
 import re
 import time
 import shutil
@@ -29,7 +30,8 @@ from ligmos.utils import files
 from ..common import images
 
 
-def grabSet(camset, failimg=None, interval=0.5, archive=False, makeMini=True):
+def grabSet(camset, failimg=None, interval=0.5, archive=False,
+            makeMini=True, cullArchive=True):
     """
     Grab all camera images in the given dictionary
     """
@@ -58,10 +60,8 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False, makeMini=True):
             elif currentCamera.type.lower() == 'rtsp':
                 grabFromRTSP(currentCamera, outfile)
 
-            if makeMini is True:
-                # Make a thumbnail-sized version I can easily include elsewhere
-                images.resizeImage(outfile, thumbfile, thumbSize)
-
+            # Only worth archiving images that are real!  If any of the above
+            #   functions raise RCE this will get skipped which I think is fine
             if archive is True:
                 curOutName = currentCamera.oname.split(".")
                 archiveBase = "%s/archive/%s/" % (currentCamera.odir,
@@ -83,6 +83,13 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False, makeMini=True):
                     shutil.copy(outfile, archivefile)
                 except Exception as e:
                     print(str(e))
+
+                # Perform the archive culling; this will preserve the last
+                #   ones in the archive if a camera goes offline for a while
+                #   and isn't noticed, so I'll be able to track down when it
+                #   was last seen.  Seems like a good idea.
+                if cullArchive is True:
+                    pass
         except RCE as err:
             # This handles the connection error cases from the specific
             #   image grabbing utility functions. They should just
@@ -91,6 +98,12 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False, makeMini=True):
 
             images.tagErrorImage(outfile, failimg=failimg,
                                  camname=cam)
+
+        # We always want to make a thumbnail sized image of the latest thing
+        if makeMini is True:
+            print("Making thumbnail sized image...")
+            # Make a thumbnail-sized version I can easily include elsewhere
+            images.resizeImage(outfile, thumbfile, thumbSize)
 
         time.sleep(interval)
 
@@ -117,8 +130,8 @@ def camGrabbie(cam, outfile):
             # NOTE: I needed to add this check because one webcam went
             #   *mostly dead* and returned HTTP codes and pings, but not images
             if img.ok is True:
-                print("Good grab!")
                 f.write(img.content)
+                print("Good grab and write to disk as %s!" % (outfile))
             else:
                 # This will be caught elsewhere
                 print("Bad grab :(")
@@ -127,6 +140,14 @@ def camGrabbie(cam, outfile):
             print("Bad grab :(")
             print(str(err))
             raise RCE
+
+    # Test to make sure the image wasn't 0 bytes!
+    #   Can happen if the request succeeds but the camera is
+    #   being weird and mid-boot or some other intermittent quirk
+    imgSize = os.stat(outfile).st_size
+    if imgSize == 0:
+        print("Saved image was 0 bytes - it was really a bad grab :(")
+        raise RCE
 
 
 def simpleImageCopy(url, location):
@@ -145,6 +166,14 @@ def simpleImageCopy(url, location):
         print('Retrieving image from: %s' % (url))
         img = httpget(url)
         f.write(img.content)
+
+    # Test to make sure the image wasn't 0 bytes!
+    #   Can happen if the request succeeds but the camera is
+    #   being weird and mid-boot or some other intermittent quirk
+    imgSize = os.stat(location).st_size
+    if imgSize == 0:
+        print("Saved image was 0 bytes - it was really a bad grab :(")
+        raise RCE
 
 
 def getLastFileURL(url, fmask):
@@ -257,3 +286,11 @@ def grabFromRTSP(curcam, outfile):
             print(str(e))
 
             raise RCE from e
+
+    # Test to make sure the image wasn't 0 bytes!
+    #   Can happen if the request succeeds but the camera is
+    #   being weird and mid-boot or some other intermittent quirk
+    imgSize = os.stat(outfile).st_size
+    if imgSize == 0:
+        print("Saved image was 0 bytes - it was really a bad grab :(")
+        raise RCE
