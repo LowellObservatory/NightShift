@@ -69,9 +69,9 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
                 curOutName = currentCamera.oname.split(".")
                 archiveBase = "%s/archive/%s/" % (currentCamera.odir,
                                                   curOutName[0])
-                # This will give the list of already archived dates to check
-                #   for old ones that need deleting
-                olddirs = files.checkOutDir(archiveBase, getList=True)
+
+                # Make sure the archive root exists already
+                _ = files.checkOutDir(archiveBase, getList=True)
 
                 # Actually archive the new files
                 thisarchivedir = "%s/%s/" % (archiveBase, nowDateStr)
@@ -92,7 +92,11 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
                 #   and isn't noticed, so I'll be able to track down when it
                 #   was last seen.  Seems like a good idea.
                 if cullArchive is True:
-                    pass
+                    oldDirs = files.findOldFiles(archiveBase, "*", nowTime,
+                                                 maxage=tooOldForArchive*24.,
+                                                 dtfmt="%Y%m%d")
+                    print("I would delete:")
+                    print(oldDirs)
         except RCE as err:
             # This handles the connection error cases from the specific
             #   image grabbing utility functions. They should just
