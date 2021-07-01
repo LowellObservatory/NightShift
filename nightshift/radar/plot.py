@@ -201,23 +201,21 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(cLat,
                                                                           cLon)
 
-                # Get the projection info for the plot axes
+                # Set the projection info for the plot axes
                 crs = ccrs.LambertConformal(central_latitude=siteLat,
                                             central_longitude=siteLon)
 
                 # Get the proper plot extents so we have no whitespace
                 prlon = (crs.x_limits[1] - crs.x_limits[0])
                 prlat = (crs.y_limits[1] - crs.y_limits[0])
-                # Ultimate image width/height
+
+                # Natural aspect ratio based on coordinates
                 paspect = prlon/prlat
 
-                # !!! WARNING !!!
-                #   I hate this kludge
-                # figsize = (7., np.round(7./paspect, decimals=2))
                 figsize = (7., 7.)
 
-                print(prlon, prlat, paspect)
-                print(figsize)
+                # print(prlon, prlat, paspect)
+                # print(figsize)
 
                 # Figure creation
                 fig = plt.figure(figsize=figsize, dpi=100)
