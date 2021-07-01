@@ -271,17 +271,6 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 save = True
 
         if save is True:
-            # dat = readNC(each)
-
-            # # Pull out the channel/band and other identifiers
-            # chan = dat.variables['band_id'][0]
-            # plat = "%s (%s)" % (dat.orbital_slot, dat.platform_ID)
-            # dprod = dat.title
-
-            # # Pull out the time stamp
-            # tend = dt.strptime(dat.time_coverage_end,
-            #                    "%Y-%m-%dT%H:%M:%S.%fZ")
-
             # If it's our first time through, we definitely need to recalculate
             #   the projection/transformation stuff
             if i == 0:
@@ -302,11 +291,11 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
             if ndat is not None:
                 # Set the projection info for the plot axes
-                # crs = ccrs.LambertConformal(central_latitude=siteLat,
-                #                             central_longitude=siteLon)
+                crs = ccrs.LambertConformal(central_latitude=cLat,
+                                            central_longitude=cLon)
 
                 # Get the new projection/transformation info for the plot axes
-                crs = ngrid.to_cartopy_crs()
+                # crs = ngrid.to_cartopy_crs()
 
                 # Get the proper plot extents so we have no whitespace
                 prlon = (crs.x_limits[1] - crs.x_limits[0])
