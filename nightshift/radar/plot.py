@@ -278,11 +278,10 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 line2 = line2.upper()
 
                 # Black background for top label text
-                #   NOTE: Z order is important! Text should be higher
-                #         than trect
-                trect = mpatches.Rectangle((0.0, 0.955),
-                                           width=1.0, height=0.045,
-                                           edgecolor=None, facecolor='black',
+                #   NOTE: Z order is important! Text should be > than trect
+                trect = mpatches.Rectangle((0.0, 0.955), width=1.0,
+                                           height=0.045, edgecolor=None,
+                                           facecolor='black',
                                            fill=True, alpha=1.0, zorder=100,
                                            transform=ax.transAxes)
                 ax.add_patch(trect)
@@ -303,7 +302,6 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 # Useful for testing getCmap changes
                 # plt.colorbar()
 
-                print("Saving...")
                 plt.savefig(outpname, dpi=100, facecolor='black', frameon=True)
                 print("Saved as %s." % (outpname))
                 plt.close()

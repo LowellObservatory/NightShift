@@ -307,7 +307,6 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
                 # Get the new projection/transformation info for the plot axes
                 crs = ngrid.to_cartopy_crs()
-                print(ngrid)
 
                 # Get the proper plot extents so we have no whitespace
                 prlon = (crs.x_limits[1] - crs.x_limits[0])
@@ -354,8 +353,6 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                                            transform=ax.transAxes)
                 ax.add_patch(trect)
 
-                # Add the informational bar at the top, using info directly
-                #   from the original datafiles that we opened at the top
                 # Line 1
                 plt.annotate(line1, (0.5, 0.985), xycoords='axes fraction',
                              fontfamily='monospace',

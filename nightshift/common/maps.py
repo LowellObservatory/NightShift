@@ -52,7 +52,7 @@ def set_plot_extent(clat, clon, radius=200., fudge=0.053):
     lonWid = dRnm/(np.cos(np.deg2rad(clat))*60.)
 
     # Small fudge factor to make the aspect a little closer to 1:1
-    latWid += fudge
+    # latWid += fudge
 
     print(latWid, lonWid)
 
