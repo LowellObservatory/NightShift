@@ -291,11 +291,11 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
             if ndat is not None:
                 # Set the projection info for the plot axes
-                crs = ccrs.LambertConformal(central_latitude=cLat,
-                                            central_longitude=cLon)
+                # crs = ccrs.LambertConformal(central_latitude=cLat,
+                #                             central_longitude=cLon)
 
                 # Get the new projection/transformation info for the plot axes
-                # crs = ngrid.to_cartopy_crs()
+                crs = ngrid.to_cartopy_crs()
 
                 # Get the proper plot extents so we have no whitespace
                 prlon = (crs.x_limits[1] - crs.x_limits[0])
@@ -328,6 +328,9 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 ax = com.maps.add_map_features(ax, counties=counties,
                                                roads=roads)
                 ax = com.maps.add_AZObs(ax)
+
+                # Need to replace crs.bounds with equivalent if I want to
+                #   define the same LCC for all of these things!
 
                 plt.imshow(ndat, transform=crs, extent=crs.bounds,
                            origin='upper', vmin=160., vmax=330.,
