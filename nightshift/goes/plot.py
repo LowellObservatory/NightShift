@@ -19,6 +19,7 @@ from datetime import datetime as dt
 
 import numpy as np
 import pyresample as pr
+import cartopy.crs as ccrs
 from netCDF4 import Dataset
 
 from matplotlib import cm
@@ -129,8 +130,10 @@ def crop_image(filename, clat, clon, pCoeff=None):
     # Parse/grab the existing projection information
     old_grid, imgdata = G16_ABI_L2_ProjDef(dat)
 
-    latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(clat, clon,
-                                                              fudge=0.093)
+    # latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(clat, clon,
+    #                                                           fudge=0.093)
+
+    latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(clat, clon)
 
     # Create a grid at at the specified resolution; original default was
     #   0.005 degrees or 18 arcseconds resolution, though I don't remember why
@@ -298,24 +301,25 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
             print('NEW projection information: {}'.format(ngrid))
 
             if ndat is not None:
+                # Set the projection info for the plot axes
+                crs = ccrs.LambertConformal(central_latitude=siteLat,
+                                            central_longitude=siteLon)
+
                 # Get the new projection/transformation info for the plot axes
-                crs = ngrid.to_cartopy_crs()
+                # crs = ngrid.to_cartopy_crs()
 
                 # Get the proper plot extents so we have no whitespace
-                print(crs.bounds)
                 prlon = (crs.x_limits[1] - crs.x_limits[0])
                 prlat = (crs.y_limits[1] - crs.y_limits[0])
-                # Ultimate image width/height
+
+                # Natural image width/height
                 paspect = prlon/prlat
 
-                # !!! WARNING !!!
-                #   I hate this, but it works if you let the aspect stretch
-                #   just a tiny bit. Needed for MP4 creation because the
-                #   compression algorithm needs an even number divisor
-                figsize = (7., np.round(7./paspect, decimals=2))
+                # figsize = (7., np.round(7./paspect, decimals=2))
+                figsize = (7., 7.)
 
-                print(prlon, prlat, paspect)
-                print(figsize)
+                # print(prlon, prlat, paspect)
+                # print(figsize)
 
                 # Figure creation
                 fig = plt.figure(figsize=figsize, dpi=100)
