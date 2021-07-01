@@ -38,7 +38,7 @@ def set_plot_extent(clat, clon, radius=200., fudge=0.053):
     # latMin = clat - latWid
     # latMax = clat + latWid - 0.75
 
-    # Zoomed in portion around the DCT, showing an approximate radius
+    # Zoomed in portion around the LDT, showing an approximate radius
     #   of 'desiredRadius' statute miles.
     # To do this right it's easier to think in terms of nautical miles;
     #   See https://github.com/LowellObservatory/Camelot/issues/5 for the math.
@@ -225,7 +225,7 @@ def add_AZObs(ax):
     ax.plot(-111.664444, 35.202778, marker='*', color='red',
             markersize=8, alpha=0.95, transform=ccrs.Geodetic())
 
-    # DCT
+    # LDT
     ax.plot(-111.4223, 34.7443, marker='o', color='red', markersize=6,
             alpha=0.95, transform=ccrs.Geodetic())
 
