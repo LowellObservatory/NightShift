@@ -302,11 +302,12 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
             if ndat is not None:
                 # Set the projection info for the plot axes
-                crs = ccrs.LambertConformal(central_latitude=siteLat,
-                                            central_longitude=siteLon)
+                # crs = ccrs.LambertConformal(central_latitude=siteLat,
+                #                             central_longitude=siteLon)
 
                 # Get the new projection/transformation info for the plot axes
-                # crs = ngrid.to_cartopy_crs()
+                crs = ngrid.to_cartopy_crs()
+                print(ngrid)
 
                 # Get the proper plot extents so we have no whitespace
                 prlon = (crs.x_limits[1] - crs.x_limits[0])
