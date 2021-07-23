@@ -97,20 +97,6 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
                                                     dtfmt="%Y%m%d")
                     if oldDirs != {}:
                         files.deleteOldDirectories(oldDirs)
-
-            if cam.extracopy is not None:
-                if cam.extracopy_prefix is not None:
-                    extrafile = "%s/%s_%s.%s" % (cam.extracopy,
-                                                 cam.extracopy_prefix,
-                                                 nowTimeStr, curOutName[1])
-                else:
-                    extrafile = "%s/%s.%s" % (cam.extracopy,
-                                              nowTimeStr, curOutName[1])
-                try:
-                    print("Doing extra copy to %s" % (cam.extrafile))
-                    shutil.copy(outfile, extrafile)
-                except Exception as e:
-                    print(str(e))
         except RCE as err:
             # This handles the connection error cases from the specific
             #   image grabbing utility functions. They should just
@@ -125,6 +111,21 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
             print("Making thumbnail sized image...")
             # Make a thumbnail-sized version I can easily include elsewhere
             images.resizeImage(outfile, thumbfile, thumbSize)
+
+        if cam.extracopy is not None:
+            print("Doing extra copy of webcam image now!")
+            if cam.extracopy_prefix is not None:
+                extrafile = "%s/%s_%s.%s" % (cam.extracopy,
+                                             cam.extracopy_prefix,
+                                             nowTimeStr, curOutName[1])
+            else:
+                extrafile = "%s/%s.%s" % (cam.extracopy,
+                                          nowTimeStr, curOutName[1])
+            try:
+                print("Doing extra copy to %s" % (cam.extrafile))
+                shutil.copy(outfile, extrafile)
+            except Exception as e:
+                print(str(e))
 
         time.sleep(interval)
 
