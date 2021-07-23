@@ -126,6 +126,9 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
                 shutil.copy(outfile, extrafile)
             except Exception as e:
                 print(str(e))
+        else:
+            print("No extra webcam image copy specified")
+            print(cam.__dict__)
 
         time.sleep(interval)
 
