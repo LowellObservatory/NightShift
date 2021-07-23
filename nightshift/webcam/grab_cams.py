@@ -43,10 +43,6 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
 
     for cam in camset:
         currentCamera = camset[cam]
-        print("Camera configuration:")
-        print(currentCamera.__dict__)
-        print()
-
         print('Retrieving camera image: %s' % (cam))
 
         # Hack to save both the latest and the previous ones
@@ -116,8 +112,9 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
             # Make a thumbnail-sized version I can easily include elsewhere
             images.resizeImage(outfile, thumbfile, thumbSize)
 
+        print("Doing extra copy of webcam image now!")
+        print(currentCamera.__dict__)
         if currentCamera.extracopy is not None:
-            print("Doing extra copy of webcam image now!")
             if currentCamera.extracopy_prefix is not None:
                 extrafile = "%s/%s_%s.%s" % (currentCamera.extracopy,
                                              currentCamera.extracopy_prefix,
