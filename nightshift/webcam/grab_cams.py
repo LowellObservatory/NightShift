@@ -107,6 +107,7 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
                     extrafile = "%s/%s.%s" % (cam.extracopy,
                                               nowTimeStr, curOutName[1])
                 try:
+                    print("Doing extra copy to %s" % (cam.extrafile))
                     shutil.copy(outfile, extrafile)
                 except Exception as e:
                     print(str(e))
