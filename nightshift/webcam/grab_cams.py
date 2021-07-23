@@ -52,6 +52,7 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
 
         # This is the static (current/most recent) image
         outfile = "%s/%s" % (currentCamera.odir, currentCamera.oname)
+        curOutName = currentCamera.oname.split(".")
 
         # This is the same but the smaller thumbnail version
         thumbfile = "%s/thumb_%s" % (currentCamera.odir, currentCamera.oname)
@@ -66,7 +67,6 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
             # Only worth archiving images that are real!  If any of the above
             #   functions raise RCE this will get skipped which I think is fine
             if archive is True:
-                curOutName = currentCamera.oname.split(".")
                 archiveBase = "%s/archive/%s/" % (currentCamera.odir,
                                                   curOutName[0])
 
