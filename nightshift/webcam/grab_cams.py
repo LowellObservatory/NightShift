@@ -42,6 +42,16 @@ def grabSet(camset, failimg=None, interval=0.5,
         currentCamera = camset[cam]
         print('Retrieving camera image: %s' % (cam))
 
+        try:
+            maxage = int(currentCamera.archiveDays)*24.
+        except Exception as err:
+            # TODO: Catch the right error here.
+            print("WARNING - Disabling archive culling!")
+            print(str(err))
+            print("Check the configuration file input?")
+            print("archiveDays isn't working right...")
+            cullArchive = False
+
         # Hack to save both the latest and the previous ones
         nowTime = dt.utcnow()
         nowTimeStr = nowTime.strftime("%Y%m%d_%H%M%S")
@@ -89,7 +99,6 @@ def grabSet(camset, failimg=None, interval=0.5,
                 #   and isn't noticed, so I'll be able to track down when it
                 #   was last seen.  Seems like a good idea.
                 if cullArchive is True:
-                    maxage = currentCamera.archiveDays*24.
                     _, oldDirs = files.findOldFiles(archiveBase, "*", nowTime,
                                                     maxage=maxage,
                                                     dtfmt="%Y%m%d")
