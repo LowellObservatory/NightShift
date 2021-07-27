@@ -30,16 +30,13 @@ from ligmos.utils import files
 from ..common import images
 
 
-def grabSet(camset, failimg=None, interval=0.5, archive=False,
+def grabSet(camset, failimg=None, interval=0.5,
             makeMini=True, cullArchive=True):
     """
     Grab all camera images in the given dictionary
     """
     # This is the size that NightWatch uses
     thumbSize = [400, 235]
-
-    # Oldest date to keep in the archive is this many days old
-    oldArchiveAge = 30
 
     for cam in camset:
         currentCamera = camset[cam]
@@ -66,7 +63,7 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
 
             # Only worth archiving images that are real!  If any of the above
             #   functions raise RCE this will get skipped which I think is fine
-            if archive is True:
+            if currentCamera.archive is True:
                 archiveBase = "%s/archive/%s/" % (currentCamera.odir,
                                                   curOutName[0])
 
@@ -92,8 +89,9 @@ def grabSet(camset, failimg=None, interval=0.5, archive=False,
                 #   and isn't noticed, so I'll be able to track down when it
                 #   was last seen.  Seems like a good idea.
                 if cullArchive is True:
+                    maxage = currentCamera.archiveDays*24.
                     _, oldDirs = files.findOldFiles(archiveBase, "*", nowTime,
-                                                    maxage=oldArchiveAge*24.,
+                                                    maxage=maxage,
                                                     dtfmt="%Y%m%d")
                     if oldDirs != {}:
                         files.deleteOldDirectories(oldDirs)

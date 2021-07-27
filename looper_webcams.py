@@ -54,7 +54,7 @@ def main():
         # failimg = None just uses the default one:
         #   resources/images/percy_txt.jpg
         # Note: Archive locations will be created automatically in here
-        cams.grabSet(oncams, failimg=None, archive=True, makeMini=True)
+        cams.grabSet(oncams, failimg=None, makeMini=True)
         print("Done Grabbing Images!")
 
         print("Sleeping for 60 seconds...")
