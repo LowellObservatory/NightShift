@@ -52,9 +52,9 @@ def grabSet(camset, failimg=None, interval=0.5,
                 print("Check the configuration file input?")
                 print("archiveDays isn't working right...")
                 cullArchive = False
-            else:
-                print("WARNING - archiveDays not specified! Not culling.")
-                cullArchive = False
+        else:
+            print("WARNING - archiveDays not specified! Not culling.")
+            cullArchive = False
 
         # Hack to save both the latest and the previous ones
         nowTime = dt.utcnow()
