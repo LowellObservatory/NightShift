@@ -52,6 +52,9 @@ def grabSet(camset, failimg=None, interval=0.5,
                 print("Check the configuration file input?")
                 print("archiveDays isn't working right...")
                 cullArchive = False
+            else:
+                print("WARNING - archiveDays not specified! Not culling.")
+                cullArchive = False
 
         # Hack to save both the latest and the previous ones
         nowTime = dt.utcnow()
@@ -95,16 +98,18 @@ def grabSet(camset, failimg=None, interval=0.5,
                 except Exception as e:
                     print(str(e))
 
-                # Perform the archive culling; this will preserve the last
-                #   ones in the archive if a camera goes offline for a while
-                #   and isn't noticed, so I'll be able to track down when it
-                #   was last seen.  Seems like a good idea.
+                # Perform the archive culling; doing it here preserves the
+                #   ones in the archive, so if a camera goes offline and isn't
+                #   noticed, I'll be able to see when it was online last.
                 if cullArchive is True:
+                    print("Finding directories older than %f days" % (maxage))
                     _, oldDirs = files.findOldFiles(archiveBase, "*", nowTime,
                                                     maxage=maxage,
                                                     dtfmt="%Y%m%d")
                     if oldDirs != {}:
                         files.deleteOldDirectories(oldDirs)
+                    else:
+                        print("No old directories found.")
         except RCE as err:
             # This handles the connection error cases from the specific
             #   image grabbing utility functions. They should just
