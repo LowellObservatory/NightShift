@@ -102,7 +102,8 @@ def grabSet(camset, failimg=None, interval=0.5,
                 #   ones in the archive, so if a camera goes offline and isn't
                 #   noticed, I'll be able to see when it was online last.
                 if cullArchive is True:
-                    print("Finding directories older than %f days" % (maxage))
+                    print("Finding directories older than %f days" %
+                          (maxage/24.))
                     _, oldDirs = files.findOldFiles(archiveBase, "*", nowTime,
                                                     maxage=maxage,
                                                     dtfmt="%Y%m%d")
