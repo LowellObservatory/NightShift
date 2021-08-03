@@ -42,7 +42,6 @@ def grabSet(camset, failimg=None, interval=0.5,
         currentCamera = camset[cam]
         print('Retrieving camera image: %s' % (cam))
 
-        cullArchive = False
         if currentCamera.archiveDays is not None:
             try:
                 maxage = int(currentCamera.archiveDays)*24.
@@ -52,6 +51,7 @@ def grabSet(camset, failimg=None, interval=0.5,
                 print(str(err))
                 print("Check the configuration file input?")
                 print("archiveDays isn't working right...")
+                cullArchive = False
 
         # Hack to save both the latest and the previous ones
         nowTime = dt.utcnow()
