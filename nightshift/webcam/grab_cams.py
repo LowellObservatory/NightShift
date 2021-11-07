@@ -35,7 +35,8 @@ def grabSet(camset, failimg=None, interval=0.5,
     """
     Grab all camera images in the given dictionary
     """
-    # This is the size that NightWatch uses
+    # This is the size that NightWatch uses; it's used in case thumbsize
+    #   wasn't set in the configuration section
     thumbSize = [400, 235]
 
     for cam in camset:
@@ -123,8 +124,14 @@ def grabSet(camset, failimg=None, interval=0.5,
         # We always want to make a thumbnail sized image of the latest thing
         if makeMini is True:
             print("Making thumbnail sized image...")
+            if currentCamera.thumbsize is not None:
+                # We need to make sure the dimensions are integers not strs
+                thisThumbSize = [int(currentCamera.thumbsize[0]),
+                                 int(currentCamera.thumbsize[1])]
+            else:
+                thisThumbSize = thumbSize
             # Make a thumbnail-sized version I can easily include elsewhere
-            images.resizeImage(outfile, thumbfile, thumbSize)
+            images.resizeImage(outfile, thumbfile, thisThumbSize)
 
         print("Doing extra copy of webcam image now!")
         print(currentCamera.__dict__)
