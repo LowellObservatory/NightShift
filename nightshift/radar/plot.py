@@ -213,7 +213,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 # Natural aspect ratio based on coordinates
                 paspect = prlon/prlat
 
-                figsize = (7., 7.)
+                figsize = (6.5, 6.5)
 
                 # print(prlon, prlat, paspect)
                 # print(figsize)

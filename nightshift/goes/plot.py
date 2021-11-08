@@ -305,7 +305,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 paspect = prlon/prlat
 
                 # figsize = (7., np.round(7./paspect, decimals=2))
-                figsize = (7., 7.)
+                figsize = (6.5, 6.5)
 
                 # print(prlon, prlat, paspect)
                 # print(figsize)
@@ -361,7 +361,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 # Useful for testing getCmap changes
                 # plt.colorbar()
 
-                plt.savefig(outpname, dpi=100)
+                plt.savefig(outpname, dpi=100, facecolor='black', frameon=True)
                 print("Saved as %s." % (outpname))
                 plt.close()
             else:
