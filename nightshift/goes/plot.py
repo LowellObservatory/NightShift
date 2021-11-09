@@ -307,7 +307,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 paspect = prlon/prlat
 
                 # figsize = (7., np.round(7./paspect, decimals=2))
-                figsize = (5.85, 5.85)
+                figsize = (5.80, 5.80)
 
                 # print(prlon, prlat, paspect)
                 # print(figsize)
