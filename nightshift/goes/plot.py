@@ -354,13 +354,13 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 ax.add_patch(trect)
 
                 # Line 1
-                plt.annotate(l1, (0.5, 0.990), xycoords='axes fraction',
+                plt.annotate(l1, (0.5, 0.995), xycoords='axes fraction',
                              fontfamily='monospace',
                              horizontalalignment='center',
                              verticalalignment='center',
                              color='white', fontweight='bold', zorder=200)
                 # Line 2
-                plt.annotate(l2, (0.5, 0.965), xycoords='axes fraction',
+                plt.annotate(l2, (0.5, 0.970), xycoords='axes fraction',
                              fontfamily='monospace',
                              horizontalalignment='center',
                              verticalalignment='center',
