@@ -76,7 +76,7 @@ def applyErrorLogo(img, outname, failimg=None, color=None, debug=False):
 
     """
     if failimg is None:
-        failimgloc = "resources/images/dontpanic.png"
+        failimgloc = "resources/images/dontpanic_smaller.png"
         failimg = pkgr.resource_filename('nightshift', failimgloc)
 
     # Read in the images
@@ -86,6 +86,8 @@ def applyErrorLogo(img, outname, failimg=None, color=None, debug=False):
     cimg = shift_hue(fimg, color=color, debug=debug)
 
     # Combine the two; this composites the second over the first
+    #   NOTE: You'll get a ValueError if the size of the error stamp
+    #         does not match the size of the actual base image!
     wimg = Image.alpha_composite(oimg, cimg)
     wimg.save(outname)
     wimg.close()

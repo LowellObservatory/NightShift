@@ -307,7 +307,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 paspect = prlon/prlat
 
                 # figsize = (7., np.round(7./paspect, decimals=2))
-                figsize = (6., 6.)
+                figsize = (5.75, 5.75)
 
                 # print(prlon, prlat, paspect)
                 # print(figsize)
@@ -346,21 +346,21 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
                 # Black background for top label text
                 #   NOTE: Z order is important! Text should be > than trect
-                trect = mpatches.Rectangle((0.0, 0.955), width=1.0,
-                                           height=0.045, edgecolor=None,
+                trect = mpatches.Rectangle((0.0, 0.940), width=1.0,
+                                           height=0.060, edgecolor=None,
                                            facecolor='black',
                                            fill=True, alpha=1.0, zorder=100,
                                            transform=ax.transAxes)
                 ax.add_patch(trect)
 
                 # Line 1
-                plt.annotate(l1, (0.5, 0.995), xycoords='axes fraction',
+                plt.annotate(l1, (0.5, 0.990), xycoords='axes fraction',
                              fontfamily='monospace',
                              horizontalalignment='center',
                              verticalalignment='center',
                              color='white', fontweight='bold', zorder=200)
                 # Line 2
-                plt.annotate(l2, (0.5, 0.970), xycoords='axes fraction',
+                plt.annotate(l2, (0.5, 0.960), xycoords='axes fraction',
                              fontfamily='monospace',
                              horizontalalignment='center',
                              verticalalignment='center',
