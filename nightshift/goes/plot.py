@@ -134,6 +134,7 @@ def crop_image(filename, clat, clon, pCoeff=None):
     #                                                           fudge=0.093)
 
     latMin, latMax, lonMin, lonMax = com.maps.set_plot_extent(clat, clon)
+    plotExtents = (latMin, latMax, lonMin, lonMax)
 
     # Create a grid at at the specified resolution; original default was
     #   0.005 degrees or 18 arcseconds resolution, though I don't remember why
@@ -191,7 +192,7 @@ def crop_image(filename, clat, clon, pCoeff=None):
 
     print('Old projection information: {}'.format(old_grid))
 
-    return area_def, pData, pCoeff, tend, line1, line2
+    return area_def, pData, pCoeff, tend, line1, line2, plotExtents
 
 
 def getCMap(vmin=160, vmax=330, trans=None):
@@ -283,16 +284,17 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
             # This is the function that actually handles the reprojection
             #   as well as actually reading in the original file
-            ngrid, ndat, pCoeff, tend, line1, line2 = crop_image(each,
-                                                                 cLat, cLon,
+            ngrid, ndat, pCoeff, tend, l1, l2, pExt = crop_image(each,
+                                                                 cLat,
+                                                                 cLon,
                                                                  pCoeff=pCoeff)
 
             print('NEW projection information: {}'.format(ngrid))
 
             if ndat is not None:
                 # Set the projection info for the plot axes
-                # crs = ccrs.LambertConformal(central_latitude=cLat,
-                #                             central_longitude=cLon)
+                crs = ccrs.LambertConformal(central_latitude=cLat,
+                                            central_longitude=cLon)
 
                 # Get the new projection/transformation info for the plot axes
                 crs = ngrid.to_cartopy_crs()
@@ -336,6 +338,12 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                            origin='upper', vmin=160., vmax=330.,
                            interpolation='none', cmap=cmap)
 
+                # nextent = (ngrid.area_extent[0], ngrid.area_extent[2],
+                #            ngrid.area_extent[1], ngrid.area_extent[3])
+                # plt.imshow(ndat, transform=crs, extent=pExt,
+                #            origin='upper', vmin=160., vmax=330.,
+                #            interpolation='none', cmap=cmap)
+
                 # Black background for top label text
                 #   NOTE: Z order is important! Text should be > than trect
                 trect = mpatches.Rectangle((0.0, 0.955), width=1.0,
@@ -346,13 +354,13 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 ax.add_patch(trect)
 
                 # Line 1
-                plt.annotate(line1, (0.5, 0.985), xycoords='axes fraction',
+                plt.annotate(l1, (0.5, 0.990), xycoords='axes fraction',
                              fontfamily='monospace',
                              horizontalalignment='center',
                              verticalalignment='center',
                              color='white', fontweight='bold', zorder=200)
                 # Line 2
-                plt.annotate(line2, (0.5, 0.965), xycoords='axes fraction',
+                plt.annotate(l2, (0.5, 0.965), xycoords='axes fraction',
                              fontfamily='monospace',
                              horizontalalignment='center',
                              verticalalignment='center',
@@ -361,7 +369,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 # Useful for testing getCmap changes
                 # plt.colorbar()
 
-                plt.savefig(outpname, dpi=100, facecolor='black', frameon=True)
+                plt.savefig(outpname, dpi=100, facecolor='black')
                 print("Saved as %s." % (outpname))
                 plt.close()
             else:
@@ -369,8 +377,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 crs = None
                 fig = None
                 ax = None
-                line1 = None
-                line2 = None
+                l1 = None
+                l2 = None
                 ngrid = None
                 ndat = None
 
@@ -381,6 +389,6 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
             # Leak killing. Not sure which one of these is the culprit
             #   ... but testing implies it's one (or more) or these.
-            del crs, fig, ax, line1, line2, ngrid, ndat
+            del crs, fig, ax, l1, l2, ngrid, ndat
 
     return i
