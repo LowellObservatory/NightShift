@@ -85,6 +85,11 @@ def convertTimestamp(lastTime, tz='UTC'):
 
     print("Converting timestamp", lastTime, "of type", type(lastTime))
 
+    # This is the default return value if all the stuff below fails
+    #   It should cause havoc in the calling codes and make it
+    #   at least easier to discover where things went sideways
+    lastTimedt = None
+
     # It's possible that the timestamp class/type shifts slightly as we
     #   stream data into the main CDS; do some sanitization to check
     #   that we're not going to suddenly barf because of that.
