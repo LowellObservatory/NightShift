@@ -309,6 +309,7 @@ def newDataCallback(cds, cols, nf, lastTimedt, y1lim):
         #   attempts to convert it to an ndarray. But it screws up the
         #   index.  So take care of that ourselves here.
         mds2 = dict(index=nf.index.to_numpy(), pix=nix, piy=niy)
+        print("mds2 now contains:", mds2)
 
         for col in cols:
             storableObject = getattr(nf, col)
