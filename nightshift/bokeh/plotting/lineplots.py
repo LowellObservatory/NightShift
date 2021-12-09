@@ -312,12 +312,15 @@ def newDataCallback(cds, cols, nf, lastTimedt, y1lim):
         print("mds2 now contains:", mds2)
 
         for col in cols:
+            print(col)
             # We need to make sure the update matches the timestamp format
             #   that is likely already in the original dataset, namely
             #   nanoseconds since epoch.  col is the index, which is
             #   of type pandas.Timestamp() so convert it to nanoseconds!
-            storableTimestamp = col.timestamp()*1e6
+            storableTimestamp = mds2[col].timestamp()*1e6
             storableObject = getattr(nf, col)
             mds2.update({storableTimestamp: storableObject})
+
+    print("Final mds2:", mds2)
 
     return mds2
