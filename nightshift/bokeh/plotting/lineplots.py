@@ -317,9 +317,11 @@ def newDataCallback(cds, cols, nf, lastTimedt, y1lim):
             #   that is likely already in the original dataset, namely
             #   nanoseconds since epoch.  col is the index, which is
             #   of type pandas.Timestamp() so convert it to nanoseconds!
-            storableTimestamp = mds2[col].timestamp()*1e6
-            storableObject = getattr(nf, col)
-            mds2.update({storableTimestamp: storableObject})
+            # storableTimestamp = mds2[col].timestamp()*1e6
+            pandasObject = getattr(nf, col)
+            # Change the dtype of the index/timestamp so it's consistent
+            pandasObject.index = pandasObject.index.astype('int64')
+            mds2.update({col: pandasObject})
 
     print("Final mds2:", mds2)
 
