@@ -210,7 +210,7 @@ def make_plot(doc):
             cds.stream(mds2, rollover=15000)
             # print("cds.data['index']", cds.data['index'])
             print("cds.data['index'].max()", cds.data['index'].max())
-            # print("New data streamed; %d row(s) added" % (nf.shape[0]))
+            print("New data streamed; %d row(s) added" % (nf.shape[0]))
 
         # Check to see if we have to update the sunrise/sunset times
         #   Create ones so it's super easy to just compare by .location

@@ -308,19 +308,15 @@ def newDataCallback(cds, cols, nf, lastTimedt, y1lim):
         # Before this is streamed to the main column data source, bokeh
         #   attempts to convert it to an ndarray. But it screws up the
         #   index.  So take care of that ourselves here.
+        # int64index = nf.index.values.view('int64')
         mds2 = dict(index=nf.index.to_numpy(), pix=nix, piy=niy)
+        # mds2 = dict(index=int64index, pix=nix, piy=niy)
         print("mds2 now contains:", mds2)
 
+        # Update the format/organization of the above now-dict mds2
         for col in cols:
             print(col)
-            # We need to make sure the update matches the timestamp format
-            #   that is likely already in the original dataset, namely
-            #   nanoseconds since epoch.  col is the index, which is
-            #   of type pandas.Timestamp() so convert it to nanoseconds!
-            # storableTimestamp = mds2[col].timestamp()*1e6
             pandasObject = getattr(nf, col)
-            # Change the dtype of the index/timestamp so it's more consistent
-            pandasObject.index = pandasObject.index.values.view('int64')
             mds2.update({col: pandasObject})
 
     print("Final mds2:", mds2)
