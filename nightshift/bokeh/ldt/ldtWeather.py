@@ -187,6 +187,7 @@ def make_plot(doc):
 
         # Get the last timestamp present in the existing ColumnDataSource
         # print("In grabNew")
+        print(cds.data['index'])
         lastTime = cds.data['index'].max()
 
         # Turn it into a datetime.datetime (with UTC timezone)
