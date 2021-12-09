@@ -83,6 +83,8 @@ def convertTimestamp(lastTime, tz='UTC'):
     else:
         raise NotImplementedError
 
+    print("Converting timestamp", lastTime, "of type", type(lastTime))
+
     # It's possible that the timestamp class/type shifts slightly as we
     #   stream data into the main CDS; do some sanitization to check
     #   that we're not going to suddenly barf because of that.
