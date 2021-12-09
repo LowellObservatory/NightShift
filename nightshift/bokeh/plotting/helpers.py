@@ -115,6 +115,7 @@ def convertTimestamp(lastTime, tz='UTC'):
             lastTimedt = lastTimedt.replace(tzinfo=storageTZ)
             # print("Converted %s to %s" % (lastTime, lastTimedt))
         elif isinstance(lastTime, np.float64):
+            # Have milliseconds, need nanoseconds
             lastTimeTimestamp = pd.Timestamp(lastTime*1e6)
             lastTimedt = lastTimeTimestamp.to_pydatetime(warn=False)
 
