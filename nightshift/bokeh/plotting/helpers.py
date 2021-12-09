@@ -109,6 +109,15 @@ def convertTimestamp(lastTime, tz='UTC'):
             #   apparently now must be punished
             lastTimedt = lastTimedt.replace(tzinfo=storageTZ)
             # print("Converted %s to %s" % (lastTime, lastTimedt))
+        elif isinstance(lastTime, np.float64):
+            lastTimeTimestamp = pd.Timestamp(lastTime*1e6)
+            lastTimedt = lastTimeTimestamp.to_pydatetime(warn=False)
+
+            # The server timezone has been set (during its setup) to UTC;
+            #   we need to specifically add that to avoid timezone
+            #   shenanigans because in a prior life we were bad and
+            #   apparently now must be punished
+            lastTimedt = lastTimedt.replace(tzinfo=storageTZ)
         elif isinstance(lastTime, str):
             # Ok, easy enough, it's a datetime stamp in string form
             try:
