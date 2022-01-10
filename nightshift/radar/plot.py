@@ -165,6 +165,10 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
             else:
                 save = True
 
+        # Check to make sure the filename is what's expected
+        if len(each) != len("KFSX20211209_162944"):
+            save = False
+
         if save is True:
             radar = readNEXRAD(each)
 
