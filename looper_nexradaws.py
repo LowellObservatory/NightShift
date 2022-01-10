@@ -131,9 +131,10 @@ def main(outdir, creds, sleep=150., keephours=24.,
         #   are new, and if so it'll shuffle the files into the correct
         #   order of static filenames.
         # This will stamp files that are > 4 hours old with a warning
-        utils.copyStaticFilenames(curpngs, lout,
-                                  staticname, nstaticfiles,
-                                  errorAge=3.5, errorStamp=True)
+        if len(curpngs) > 0:
+            utils.copyStaticFilenames(curpngs, lout,
+                                    staticname, nstaticfiles,
+                                    errorAge=3.5, errorStamp=True)
 
         print("Sleeping for %03d seconds..." % (sleep))
         time.sleep(sleep)
