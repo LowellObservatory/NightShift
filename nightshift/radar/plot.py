@@ -166,7 +166,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 save = True
 
         # Check to make sure the filename is what's expected
-        if len(each) != len("KFSX20211209_162944"):
+        if len(os.path.basename(each)) != len("KFSX20211209_162944"):
             print("Likely invalid file: %s. Skipping." % each)
             save = False
 
