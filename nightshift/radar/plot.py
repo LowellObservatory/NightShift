@@ -230,7 +230,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 # print(figsize)
 
                 # Figure creation
-                fig = plt.figure(figsize=figsize, dpi=100)
+                fig = plt.figure(figsize=figsize, dpi=100, facecolor='#262629')
 
                 # Needed to remove any whitespace/padding around the imshow()
                 plt.subplots_adjust(left=0., right=1., top=1., bottom=0.)
