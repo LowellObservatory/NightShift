@@ -34,7 +34,7 @@ from .. import common as com
 
 def readNEXRAD(filename):
     """
-
+    x
     """
     print("Reading: %s" % (filename))
     try:
@@ -49,6 +49,9 @@ def readNEXRAD(filename):
 
 
 def getCMap():
+    """
+    X
+    """
     # Pulled by hand from the NWS NEXRAD plots
     ct = ["#ccffff", "#cc99cc", "#996699", "#663366", "#cccc99", "#999966",
           "#646464", "#04e9e7", "#019ff4", "#0300f4", "#02fd02", "#01c501",
@@ -105,7 +108,7 @@ def literallyDeBug(radar, vcpmode):
     if vcpmode in [31, 32, 35]:
         refCutVal = -40
     else:
-        refCutVal = 5
+        refCutVal = -40
     refLow = np.less(refl_grid, refCutVal)
 
     # Differential reflectivity greater than some cutoff point
@@ -135,6 +138,9 @@ def literallyDeBug(radar, vcpmode):
 
 def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
               cmap=None, forceRegen=False):
+    """
+    x
+    """
     # Warning, you may explode
     #  https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.switch_backend
     plt.switch_backend("Agg")
@@ -233,7 +239,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 #   takes over and overloades Axes() with GeoAxes()
                 ax = plt.axes(projection=crs)
 
-                ax.background_patch.set_facecolor('#262629')
+                # ax.background_patch.set_facecolor('#262629')
+                ax.patch.set_facecolor('#262629')
 
                 # Some custom stuff
                 ax = com.maps.add_map_features(ax,
