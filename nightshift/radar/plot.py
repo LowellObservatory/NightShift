@@ -239,8 +239,8 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 #   takes over and overloades Axes() with GeoAxes()
                 ax = plt.axes(projection=crs)
 
-                # ax.background_patch.set_facecolor('#262629')
-                ax.patch.set_facecolor('#262629')
+                ax.background_patch.set_facecolor('#262629')
+                # ax.patch.set_facecolor('#262629')
 
                 # Some custom stuff
                 ax = com.maps.add_map_features(ax,
