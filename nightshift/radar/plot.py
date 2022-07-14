@@ -108,7 +108,7 @@ def literallyDeBug(radar, vcpmode):
     if vcpmode in [31, 32, 35]:
         refCutVal = -40
     else:
-        refCutVal = -40
+        refCutVal = -20
     refLow = np.less(refl_grid, refCutVal)
 
     # Differential reflectivity greater than some cutoff point
