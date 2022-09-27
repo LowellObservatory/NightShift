@@ -239,7 +239,7 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                 #   takes over and overloades Axes() with GeoAxes()
                 ax = plt.axes(projection=crs)
 
-                ax.background_patch.set_facecolor('#262629')
+                ax.set(facecolor='#262629')
                 # ax.patch.set_facecolor('#262629')
 
                 # Some custom stuff
@@ -259,13 +259,14 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                                      mask_outside=True,
                                      min_lon=lonMin, max_lon=lonMax,
                                      min_lat=latMin, max_lat=latMax,
+                                     ax=ax,
                                      projection=crs,
                                      fig=fig,
                                      cmap=cmap[0],
                                      norm=cmap[1],
                                      lat_0=siteLat,
                                      lon_0=siteLon,
-                                     embelish=False,
+                                    #  embelish=False,
                                      colorbar_flag=False,
                                      title_flag=False,
                                      ticklabs=[],
