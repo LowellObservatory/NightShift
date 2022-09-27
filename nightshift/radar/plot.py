@@ -108,7 +108,7 @@ def literallyDeBug(radar, vcpmode):
     if vcpmode in [31, 32, 35]:
         refCutVal = -40
     else:
-        refCutVal = -20
+        refCutVal = -5
     refLow = np.less(refl_grid, refCutVal)
 
     # Differential reflectivity greater than some cutoff point
@@ -116,11 +116,11 @@ def literallyDeBug(radar, vcpmode):
     #   This could be a natural point of improvement to filter both ends
     #   explicitly rather than trying to combine both in one shot.
     #   value originally was 2.3
-    zdrCut = np.greater(np.abs(zdr_grid), 2.0)
+    zdrCut = np.greater(np.abs(zdr_grid), 2.3)
 
     # Cross correlation values below a threshold
     #   value originally was 0.95
-    rhohvLow = np.less(rhohv_grid, 0.90)
+    rhohvLow = np.less(rhohv_grid, 0.95)
 
     # Combine all of the above into a master mask array. Flag values where:
     #   Reflectivity < cutoff OR (DifferentialReflectivity is high OR
