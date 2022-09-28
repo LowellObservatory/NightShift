@@ -266,14 +266,15 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
                                      norm=cmap[1],
                                      lat_0=siteLat,
                                      lon_0=siteLon,
-                                    #  embelish=False,
+                                     embellish=False,
                                      colorbar_flag=False,
                                      title_flag=False,
                                      ticklabs=[],
                                      ticks=[],
                                      lat_lines=[],
                                      lon_lines=[],
-                                     raster=True)
+                                     raster=True,
+                                     edgecolor=None)
 
                 display.plot_point(siteLon, siteLat,
                                    symbol='^', color='orange')
