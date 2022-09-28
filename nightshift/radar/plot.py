@@ -106,9 +106,9 @@ def literallyDeBug(radar, vcpmode):
     #   the scan type, we set a super low bar for reflectivity filtering
     #   otherwise we choose a low-ish value to try to eliminate fuzziness
     if vcpmode in [31, 32, 35]:
-        refCutVal = -25
+        refCutVal = -35
     else:
-        refCutVal = -0
+        refCutVal = -15
     refLow = np.less(refl_grid, refCutVal)
 
     # Differential reflectivity greater than some cutoff point
@@ -116,7 +116,7 @@ def literallyDeBug(radar, vcpmode):
     #   This could be a natural point of improvement to filter both ends
     #   explicitly rather than trying to combine both in one shot.
     #   value originally was 2.3
-    zdrCut = np.greater(np.abs(zdr_grid), 2.5)
+    zdrCut = np.greater(np.abs(zdr_grid), 2.3)
 
     # Cross correlation values below a threshold
     #   value originally was 0.95
