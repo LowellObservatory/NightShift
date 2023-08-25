@@ -3,6 +3,7 @@ FROM nightshiftbase
 # Not every image needs this, so we'll do it as a one-off in here
 USER root:root
 RUN conda install -y -c conda-forge arm_pyart
+#RUN pip install arm_pyart
 
 # Default command to issue when starting this image in a container
 USER lig
