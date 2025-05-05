@@ -35,7 +35,7 @@ def genQueries(timedelta, now, station):
     minmaxhour = []
 
     # timedelta MUST be an int...
-    timedelta = np.int(np.round(timedelta, decimals=0))
+    timedelta = int(np.round(timedelta, decimals=0))
 
     # Construct the query keys; this will get us to the relevant bits
     #   in the AWS bucket,

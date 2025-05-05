@@ -1,14 +1,13 @@
-# This assumes that the pytest image has already been made
-#   as required for the DCTStack/DataServants
-FROM ligbase
+FROM tanagra.lowell.edu:8042/lig/ligbase_reborn:conda24.9
 
 USER lig:lig
 WORKDIR /home/lig/Codes/
 COPY --chown=lig:lig . ./NightShift/
 WORKDIR /home/lig/Codes/NightShift
 
-USER root:root
-RUN pip install -e .
+#USER root:root
+RUN conda run -n ligbase pip install -e .
+#RUN pip install -e .
 
 USER lig:lig
 RUN mkdir outputs

@@ -320,11 +320,11 @@ def makePlots(inloc, outloc, mapCenter, roads=None, counties=None,
 
                 # Tell matplotlib we're using a map projection so cartopy
                 #   takes over and overloades Axes() with GeoAxes()
-                ax = plt.axes(projection=crs)
+                ax = plt.axes(projection=crs, facecolor='#262629')
 
                 # This actually sets the background map color so it's darker
                 #   when there's no data or missing data.
-                ax.background_patch.set_facecolor('#262629')
+                #ax.background_patch.set_facecolor('#262629')
 
                 # Some custom stuff
                 ax = com.maps.add_map_features(ax, counties=counties,

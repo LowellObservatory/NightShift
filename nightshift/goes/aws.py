@@ -38,7 +38,7 @@ def genQueries(timedelta, now, inst):
     querybins = []
 
     # timedelta MUST be an int...
-    timedelta = np.int(np.round(timedelta, decimals=0))
+    timedelta = int(np.round(timedelta, decimals=0))
 
     for i in range(timedelta, -1, -1):
         delta = td(hours=i)
@@ -66,7 +66,7 @@ def GOESAWSgrab(aws_keyid, aws_secretkey, now, outdir,
     """
     # AWS GOES bucket location/name
     #  https://registry.opendata.aws/noaa-goes/
-    awsbucket = 'noaa-goes16'
+    awsbucket = 'noaa-goes19'
     awszone = 'us-east-1'
 
     # ABI: Advanced Baseline Imager
@@ -95,7 +95,7 @@ def GOESAWSgrab(aws_keyid, aws_secretkey, now, outdir,
                 # Current filename
                 ckey = basename(objs.key)
 
-                # print("Found %s" % (ckey))
+                print("Found %s" % (ckey))
 
                 # Specific filename to search for. Do it in two parts,
                 #   one here to select the instrument/product and another

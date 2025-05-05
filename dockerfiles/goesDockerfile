@@ -3,4 +3,5 @@ FROM nightshiftbase
 # Default command to issue when starting this image in a container
 USER lig
 WORKDIR /home/lig/Codes/NightShift/
-CMD ["python looper_goes16aws.py"]
+CMD ["conda run -n ligbase looper_goes16aws.py"]
+#CMD ["python looper_goes16aws.py"]

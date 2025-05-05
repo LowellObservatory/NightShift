@@ -151,7 +151,8 @@ def configServer():
                                             'dctsleeperservice:5000',
                                             'dctsleeperservice:9876',
                                             'nightwatch',
-                                            'nightwatch.lowell.edu'])
+                                            'nightwatch.lowell.edu',
+                                            'nightwatch.lowell.local'])
 
     return server
 
