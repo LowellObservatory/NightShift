@@ -25,7 +25,7 @@ from requests.exceptions import ConnectionError as RCE
 from requests.exceptions import ReadTimeout as RTO
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
-from ligmos.utils import files
+from ligmos.utils import files, ephemera
 
 from ..common import images
 
@@ -40,12 +40,30 @@ def grabSet(camset, failimg=None, interval=0.5,
     thumbSize = [400, 235]
 
     for cam in camset:
-        currentCamera = camset[cam]
-        print('Retrieving camera image: %s' % (cam))
+        currentCam = camset[cam]
 
-        if currentCamera.archiveDays is not None:
+        print('Processing camera: %s' % (cam))
+
+        # Check the sun's altitude at this camera's site.  Default is
+        #   always enabled 24/7
+        solarEnabled = True
+        if currentCam.sitename is not None:
             try:
-                maxage = int(currentCamera.archiveDays)*24.
+                siteObj = ephemera.observingSite(sitename=currentCam.site)
+                if siteObj.sunmoon.sun_alt >= currentCam.sunvalid:
+                    solarEnabled = True
+                else:
+                    print("Solar altitude at site %s is too low; %f" %
+                          (currentCam.site, siteObj.sunmoon.sun_alt))
+                    solarEnabled = False
+            except NotImplementedError:
+                # solarEnabled is still True so things will still process thru
+                print("Site %s not found!  Ignoring." % (currentCam.site))
+                siteObj = None
+
+        if currentCam.archiveDays is not None:
+            try:
+                maxage = int(currentCam.archiveDays)*24.
             except Exception as err:
                 # TODO: Catch the right error here.
                 print("WARNING - Disabling archive culling!")
@@ -57,99 +75,102 @@ def grabSet(camset, failimg=None, interval=0.5,
             print("WARNING - archiveDays not specified! Not culling.")
             cullArchive = False
 
-        # Hack to save both the latest and the previous ones
-        nowTime = dt.utcnow()
-        nowTimeStr = nowTime.strftime("%Y%m%d_%H%M%S")
-        nowDateStr = nowTime.strftime("%Y%m%d")
+        if solarEnabled is True:
+            # Hack to save both the latest and the previous ones
+            nowTime = dt.utcnow()
+            nowTimeStr = nowTime.strftime("%Y%m%d_%H%M%S")
+            nowDateStr = nowTime.strftime("%Y%m%d")
 
-        # This is the static (current/most recent) image
-        outfile = "%s/%s" % (currentCamera.odir, currentCamera.oname)
-        curOutName = currentCamera.oname.split(".")
+            # This is the static (current/most recent) image
+            outfile = "%s/%s" % (currentCam.odir, currentCam.oname)
+            curOutName = currentCam.oname.split(".")
 
-        # This is the same but the smaller thumbnail version
-        thumbfile = "%s/thumb_%s" % (currentCamera.odir, currentCamera.oname)
-        try:
-            if currentCamera.type.lower() == 'webcam':
-                camGrabbie(currentCamera, outfile)
-            elif currentCamera.type.lower() == 'opendir':
-                grabFromOpenDirectory(currentCamera, outfile)
-            elif currentCamera.type.lower() == 'rtsp':
-                grabFromRTSP(currentCamera, outfile)
+            # This is the same but the smaller thumbnail version
+            thumbfile = "%s/thumb_%s" % (currentCam.odir,
+                                         currentCam.oname)
+            try:
+                if currentCam.type.lower() == 'webcam':
+                    camGrabbie(currentCam, outfile)
+                elif currentCam.type.lower() == 'opendir':
+                    grabFromOpenDirectory(currentCam, outfile)
+                elif currentCam.type.lower() == 'rtsp':
+                    grabFromRTSP(currentCam, outfile)
 
-            # Only worth archiving images that are real!  If any of the above
-            #   functions raise RCE this will get skipped which I think is fine
-            if currentCamera.archive is True:
-                archiveBase = "%s/archive/%s/" % (currentCamera.odir,
-                                                  curOutName[0])
+                # Only worth archiving images that are real!  If any of the
+                #   above functions raise RCE this will get skipped
+                if currentCam.archive is True:
+                    archiveBase = "%s/archive/%s/" % (currentCam.odir,
+                                                      curOutName[0])
 
-                # Make sure the archive root exists already
-                _ = files.checkOutDir(archiveBase, getList=True)
+                    # Make sure the archive root exists already
+                    _ = files.checkOutDir(archiveBase, getList=True)
 
-                # Actually archive the new files
-                thisarchivedir = "%s/%s/" % (archiveBase, nowDateStr)
-                files.checkOutDir(thisarchivedir, getList=False)
-                archivefile = "%s/%s.%s" % (thisarchivedir,
-                                            nowTimeStr, curOutName[1])
+                    # Actually archive the new files
+                    thisarchivedir = "%s/%s/" % (archiveBase, nowDateStr)
+                    files.checkOutDir(thisarchivedir, getList=False)
+                    archivefile = "%s/%s.%s" % (thisarchivedir,
+                                                nowTimeStr, curOutName[1])
 
-                print("File will be archived as: %s" % (archivefile))
-                # Now copy the file to the archive location
-                #      copy(src, dest)
+                    print("File will be archived as: %s" % (archivefile))
+                    # Now copy the file to the archive location
+                    #      copy(src, dest)
+                    try:
+                        shutil.copy(outfile, archivefile)
+                    except Exception as e:
+                        print(str(e))
+
+                    # Perform the archive culling; doing it here preserves the
+                    #   ones in the archive, so if a camera goes offline and
+                    #   isn't noticed, I'll be able to see when it was online
+                    #   last at the very least.
+                    if cullArchive is True:
+                        print("Finding directories older than %f days" %
+                              (maxage/24.))
+                        _, oldDirs = files.findOldFiles(archiveBase, "*",
+                                                        nowTime,
+                                                        maxage=maxage,
+                                                        dtfmt="%Y%m%d")
+                        if oldDirs != {}:
+                            files.deleteOldDirectories(oldDirs)
+                        else:
+                            print("No old directories found.")
+            except RCE as err:
+                # This handles the connection error cases from the specific
+                #   image grabbing utility functions. They should just
+                #   raise RCE directly when/if needed
+                print(str(err))
+
+                images.tagErrorImage(outfile, failimg=failimg, camname=cam)
+
+            # We always want to make a thumbnail sized image of the latest
+            if makeMini is True:
+                print("Making thumbnail sized image...")
+                if currentCam.thumbsize is not None:
+                    # We need to make sure the dimensions are integers not strs
+                    thisThumbSize = [int(currentCam.thumbsize[0]),
+                                     int(currentCam.thumbsize[1])]
+                else:
+                    thisThumbSize = thumbSize
+                # Make a thumbnail-sized version I can easily include elsewhere
+                images.resizeImage(outfile, thumbfile, thisThumbSize)
+
+            print("Doing extra copy of webcam image now!")
+            print(currentCam.__dict__)
+            if currentCam.extracopy is not None:
+                if currentCam.extracopy_prefix is not None:
+                    extrafile = "%s/%s_%s.%s" % (currentCam.extracopy,
+                                                 currentCam.extracopy_prefix,
+                                                 nowTimeStr, curOutName[1])
+                else:
+                    extrafile = "%s/%s.%s" % (currentCam.extracopy,
+                                              nowTimeStr, curOutName[1])
                 try:
-                    shutil.copy(outfile, archivefile)
+                    print("Doing extra copy to %s" % (extrafile))
+                    shutil.copy(outfile, extrafile)
                 except Exception as e:
                     print(str(e))
-
-                # Perform the archive culling; doing it here preserves the
-                #   ones in the archive, so if a camera goes offline and isn't
-                #   noticed, I'll be able to see when it was online last.
-                if cullArchive is True:
-                    print("Finding directories older than %f days" %
-                          (maxage/24.))
-                    _, oldDirs = files.findOldFiles(archiveBase, "*", nowTime,
-                                                    maxage=maxage,
-                                                    dtfmt="%Y%m%d")
-                    if oldDirs != {}:
-                        files.deleteOldDirectories(oldDirs)
-                    else:
-                        print("No old directories found.")
-        except RCE as err:
-            # This handles the connection error cases from the specific
-            #   image grabbing utility functions. They should just
-            #   raise RCE directly when/if needed
-            print(str(err))
-
-            images.tagErrorImage(outfile, failimg=failimg,
-                                 camname=cam)
-
-        # We always want to make a thumbnail sized image of the latest thing
-        if makeMini is True:
-            print("Making thumbnail sized image...")
-            if currentCamera.thumbsize is not None:
-                # We need to make sure the dimensions are integers not strs
-                thisThumbSize = [int(currentCamera.thumbsize[0]),
-                                 int(currentCamera.thumbsize[1])]
             else:
-                thisThumbSize = thumbSize
-            # Make a thumbnail-sized version I can easily include elsewhere
-            images.resizeImage(outfile, thumbfile, thisThumbSize)
-
-        print("Doing extra copy of webcam image now!")
-        print(currentCamera.__dict__)
-        if currentCamera.extracopy is not None:
-            if currentCamera.extracopy_prefix is not None:
-                extrafile = "%s/%s_%s.%s" % (currentCamera.extracopy,
-                                             currentCamera.extracopy_prefix,
-                                             nowTimeStr, curOutName[1])
-            else:
-                extrafile = "%s/%s.%s" % (currentCamera.extracopy,
-                                          nowTimeStr, curOutName[1])
-            try:
-                print("Doing extra copy to %s" % (extrafile))
-                shutil.copy(outfile, extrafile)
-            except Exception as e:
-                print(str(e))
-        else:
-            print("No extra webcam image copy specified")
+                print("No extra webcam image copy specified")
 
         time.sleep(interval)
 
@@ -240,6 +261,9 @@ def getLastFileURL(url, fmask):
 
 
 def listFD(url, fmask):
+    """
+    x
+    """
     try:
         page = httpget(url, timeout=10.).text
     except Exception as err:
@@ -268,6 +292,7 @@ def listFD(url, fmask):
 
 def grabFromOpenDirectory(curcam, outfile):
     """
+    x
     """
     imgURL = None
     try:
