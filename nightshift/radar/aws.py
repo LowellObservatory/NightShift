@@ -75,7 +75,7 @@ def NEXRADAWSgrab(aws_keyid, aws_secretkey, now, outdir,
     Hours to query back from above
     """
     # AWS GOES bucket location/name
-    awsbucket = 'noaa-nexrad-level2'
+    awsbucket = 'unidata-nexrad-level2'
     awszone = 'us-east-1'
 
     # Station ID that you want to download
