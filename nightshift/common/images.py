@@ -122,14 +122,18 @@ def tagErrorImage(location, failimg=None, camname=None):
     dtxt = ImageDraw.Draw(img)
 
     # We don't actually need the height since I eyeballed it
-    tw, _ = font.getsize(timestring)
+    bbox = font.getbbox(timestring)
+    tw = bbox[2] - bbox[0]
+    # th = bbox[3] - bbox[1]
     ntw = 170 - tw//2
 
     dtxt.text((ntw, 200), timestring, fill=(255, 76, 76), font=font)
 
     if camname is not None:
         # Same as above
-        tw, _ = font.getsize(camname)
+        bbox = font.getbbox(timestring)
+        tw = bbox[2] - bbox[0]
+        # th = bbox[3] - bbox[1]
         ntw = 170 - tw//2
         dtxt.text((ntw, 85), camname, fill=(255, 76, 76), font=font)
 
