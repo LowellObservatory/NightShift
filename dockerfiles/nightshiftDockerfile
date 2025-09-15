@@ -1,4 +1,4 @@
-FROM tanagra.lowell.edu:8042/lig/ligbase_reborn:conda24.9
+FROM lig-harbor.lowell.local/lig/ligbase_reborn:latest
 
 USER lig:lig
 WORKDIR /home/lig/Codes/
